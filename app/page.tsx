@@ -9,10 +9,10 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function HomePage() {
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const checkUser = async () => {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase
@@ -29,7 +29,7 @@ export default function HomePage() {
       }
     }
     checkUser()
-  }, [supabase, router])
+  }, [router])
 
   const features = [
     { 
