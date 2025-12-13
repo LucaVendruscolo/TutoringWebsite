@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -8,7 +8,8 @@ import { GraduationCap, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
-import { createClient } from '@/lib/supabase/client'
+import { Alert } from '@/components/ui/Alert'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -19,7 +20,8 @@ export default function LoginPage() {
   const [showReset, setShowReset] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const router = useRouter()
-  const supabase = createClient()
+  const supabaseReady = isSupabaseConfigured()
+  const supabase = useMemo(() => createClient(), [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -119,6 +121,16 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {!supabaseReady && (
+          <div className="mb-5">
+            <Alert variant="error" title="Supabase not configured">
+              This deployment is missing <code>NEXT_PUBLIC_SUPABASE_URL</code> and/or{' '}
+              <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>. Add them in Vercel Project Settings →
+              Environment Variables, then redeploy.
+            </Alert>
+          </div>
+        )}
+
         <Card padding="lg" className="bg-white">
           {showReset ? (
             // Reset password form
@@ -137,6 +149,7 @@ export default function LoginPage() {
                 type="submit"
                 className="w-full"
                 isLoading={isLoading}
+                disabled={!supabaseReady}
               >
                 Send Reset Link
               </Button>
@@ -199,6 +212,7 @@ export default function LoginPage() {
                 type="submit"
                 className="w-full"
                 isLoading={isLoading}
+                disabled={!supabaseReady}
               >
                 Sign In
               </Button>
