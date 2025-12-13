@@ -31,9 +31,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm',
               'focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500',
               'transition-all duration-200 placeholder:text-gray-400',
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
-              error && 'border-coral-500 focus:ring-coral-500/20 focus:border-coral-500',
+              leftIcon ? 'pl-10' : '',
+              rightIcon ? 'pr-10' : '',
+              error ? 'border-coral-500 focus:ring-coral-500/20 focus:border-coral-500' : '',
               className
             )}
             {...props}
