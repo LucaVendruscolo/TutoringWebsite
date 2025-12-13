@@ -288,6 +288,9 @@ export default function StudentDashboard() {
             variant="primary"
           />
         </div>
+        <p className="text-xs text-gray-400">
+          Lessons are marked as completed within 24 hours after they end.
+        </p>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
