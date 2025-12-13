@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { THEME_STORAGE_KEY } from '@/lib/theme'
 
 export type Theme = 'light' | 'dark'
 
@@ -12,11 +13,9 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-const STORAGE_KEY = 'theme'
-
 function getPreferredTheme(): Theme {
   if (typeof window === 'undefined') return 'light'
-  const stored = window.localStorage.getItem(STORAGE_KEY)
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
   if (stored === 'dark' || stored === 'light') return stored
   return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light'
 }
@@ -38,7 +37,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (next: Theme) => {
     setThemeState(next)
     try {
-      window.localStorage.setItem(STORAGE_KEY, next)
+      window.localStorage.setItem(THEME_STORAGE_KEY, next)
     } catch {
       // ignore
     }
@@ -61,20 +60,6 @@ export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext)
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
   return ctx
-}
-
-export function getThemeInitScript() {
-  // Runs before React hydration to avoid a flash of incorrect theme.
-  return `
-  (function () {
-    try {
-      var stored = localStorage.getItem('${STORAGE_KEY}');
-      var theme = (stored === 'dark' || stored === 'light') ? stored
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      if (theme === 'dark') document.documentElement.classList.add('dark');
-    } catch (e) {}
-  })();
-  `
 }
 
 

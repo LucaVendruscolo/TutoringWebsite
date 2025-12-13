@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
-import { ThemeProvider, getThemeInitScript } from '@/components/providers/ThemeProvider'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import { getThemeInitScript } from '@/lib/theme'
 
 export const metadata: Metadata = {
   title: "Luca's Tutoring - Online Tutoring Made Simple",
