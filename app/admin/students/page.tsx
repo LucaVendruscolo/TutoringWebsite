@@ -28,11 +28,13 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Select } from '@/components/ui/Select'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, generateTempPassword, TIMEZONES } from '@/lib/utils'
+import { calculateDerivedBalance } from '@/lib/balance'
 import type { Profile } from '@/lib/types'
 import toast from 'react-hot-toast'
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Profile[]>([])
+  const [balancesByStudent, setBalancesByStudent] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -50,7 +52,6 @@ export default function StudentsPage() {
     studentName: '',
     costPerHour: '',
     timezone: 'Europe/London',
-    balance: '0',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -64,6 +65,44 @@ export default function StudentsPage() {
     if (data) {
       setStudents(data)
     }
+
+    // Derived balances
+    const now = new Date()
+    const { data: creditTxs } = await supabase
+      .from('transactions')
+      .select('student_id, type, amount')
+      .in('type', ['deposit', 'refund'])
+      .limit(5000)
+
+    const { data: endedLessons } = await supabase
+      .from('lessons')
+      .select('student_id, end_time, status, cost')
+      .lt('end_time', now.toISOString())
+      .neq('status', 'cancelled')
+
+    const creditsByStudent: Record<string, { type: any; amount: any }[]> = {}
+    for (const tx of creditTxs || []) {
+      const sid = tx.student_id
+      if (!creditsByStudent[sid]) creditsByStudent[sid] = []
+      creditsByStudent[sid].push({ type: tx.type, amount: tx.amount })
+    }
+    const lessonsByStudent: Record<string, { status: any; end_time: any; cost: any }[]> = {}
+    for (const l of endedLessons || []) {
+      const sid = l.student_id
+      if (!lessonsByStudent[sid]) lessonsByStudent[sid] = []
+      lessonsByStudent[sid].push({ status: l.status, end_time: l.end_time, cost: l.cost })
+    }
+
+    const balances: Record<string, number> = {}
+    for (const s of data || []) {
+      balances[s.id] = calculateDerivedBalance({
+        credits: creditsByStudent[s.id] || [],
+        lessons: lessonsByStudent[s.id] || [],
+        now,
+      })
+    }
+    setBalancesByStudent(balances)
+
     setLoading(false)
   }
 
@@ -138,7 +177,6 @@ export default function StudentsPage() {
         studentName: '',
         costPerHour: '',
         timezone: 'Europe/London',
-        balance: '0',
       })
       fetchStudents()
       toast.success('Student created successfully!')
@@ -162,7 +200,6 @@ export default function StudentsPage() {
           student_name: formData.studentName,
           cost_per_hour: parseFloat(formData.costPerHour),
           timezone: formData.timezone,
-          balance: parseFloat(formData.balance),
         })
         .eq('id', selectedStudent.id)
 
@@ -211,7 +248,6 @@ export default function StudentsPage() {
       studentName: student.student_name,
       costPerHour: student.cost_per_hour.toString(),
       timezone: student.timezone,
-      balance: student.balance.toString(),
     })
     setIsEditModalOpen(true)
   }
@@ -258,7 +294,6 @@ export default function StudentsPage() {
                 studentName: '',
                 costPerHour: '',
                 timezone: 'Europe/London',
-                balance: '0',
               })
               setIsAddModalOpen(true)
             }}
@@ -333,12 +368,12 @@ export default function StudentsPage() {
                           <p className="text-sm text-gray-500">Balance</p>
                           <p
                             className={`font-medium ${
-                              student.balance < 0
+                              (balancesByStudent[student.id] ?? 0) < 0
                                 ? 'text-coral-600'
                                 : 'text-mint-600'
                             }`}
                           >
-                            {formatCurrency(student.balance)}
+                            {formatCurrency(balancesByStudent[student.id] ?? 0)}
                           </p>
                         </div>
                         <Badge
@@ -429,12 +464,12 @@ export default function StudentsPage() {
                           <p className="text-sm text-gray-400">Balance</p>
                           <p
                             className={`font-medium ${
-                              student.balance < 0
+                              (balancesByStudent[student.id] ?? 0) < 0
                                 ? 'text-coral-400'
                                 : 'text-mint-400'
                             }`}
                           >
-                            {formatCurrency(student.balance)}
+                            {formatCurrency(balancesByStudent[student.id] ?? 0)}
                           </p>
                         </div>
                         <Badge variant="neutral">Inactive</Badge>
@@ -586,13 +621,15 @@ export default function StudentsPage() {
               required
             />
             <Input
-              label="Balance (£)"
-              type="number"
-              step="0.01"
-              value={formData.balance}
-              onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+              label="Current Balance (£)"
+              type="text"
+              value={
+                selectedStudent
+                  ? formatCurrency(balancesByStudent[selectedStudent.id] ?? 0)
+                  : formatCurrency(0)
+              }
+              disabled
               leftIcon={<PoundSterling className="w-5 h-5" />}
-              required
             />
           </div>
           <Select

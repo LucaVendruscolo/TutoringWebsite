@@ -21,6 +21,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatCard } from '@/components/ui/StatCard'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
+import { calculateDerivedBalance } from '@/lib/balance'
 import type { Profile, Transaction } from '@/lib/types'
 import toast from 'react-hot-toast'
 import { loadStripe } from '@stripe/stripe-js'
@@ -31,6 +32,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 export default function StudentBalancePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
+  const [derivedBalance, setDerivedBalance] = useState(0)
   const [loading, setLoading] = useState(true)
   const [depositAmount, setDepositAmount] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -72,10 +74,39 @@ export default function StudentBalancePage() {
         setRecentTransactions(transactionsData)
       }
 
+      // Fetch credits (deposits + refunds) for balance calculation
+      const { data: creditTxs } = await supabase
+        .from('transactions')
+        .select('type, amount')
+        .eq('student_id', user.id)
+        .in('type', ['deposit', 'refund'])
+
+      // Fetch ended lessons (debits)
+      const now = new Date()
+      const { data: pastLessons } = await supabase
+        .from('lessons')
+        .select('status, end_time, cost')
+        .eq('student_id', user.id)
+        .lt('end_time', now.toISOString())
+        .neq('status', 'cancelled')
+
+      const balance = calculateDerivedBalance({
+        credits: (creditTxs as any) || [],
+        lessons: (pastLessons as any) || [],
+        now,
+      })
+      setDerivedBalance(balance)
+
       setLoading(false)
     }
 
     fetchData()
+
+    const interval = setInterval(() => {
+      fetchData()
+    }, 60_000)
+
+    return () => clearInterval(interval)
   }, [supabase, searchParams])
 
   const handleDeposit = async () => {
@@ -152,14 +183,14 @@ export default function StudentBalancePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <StatCard
               title="Current Balance"
-              value={formatCurrency(profile?.balance || 0)}
+              value={formatCurrency(derivedBalance)}
               subtitle={
-                profile && profile.balance < 0
+                derivedBalance < 0
                   ? 'You owe this amount'
                   : 'Available credit'
               }
               icon={<Wallet className="w-6 h-6" />}
-              variant={profile && profile.balance < 0 ? 'warning' : 'success'}
+              variant={derivedBalance < 0 ? 'warning' : 'success'}
             />
             <StatCard
               title="Cost Per Hour"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Stripe from 'stripe'
+import { recalculateAndPersistStudentBalance } from '@/lib/balance/server'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
@@ -65,24 +66,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ received: true })
       }
 
-      // Get current balance
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance, student_name')
-        .eq('id', userId)
-        .single()
-
-      if (!profile) {
-        throw new Error('Profile not found')
-      }
-
-      // Update balance
-      const newBalance = Number(profile.balance) + amount
-      await supabase
-        .from('profiles')
-        .update({ balance: newBalance })
-        .eq('id', userId)
-
       // Create transaction record
       await supabase.from('transactions').insert({
         student_id: userId,
@@ -92,7 +75,8 @@ export async function POST(request: NextRequest) {
         stripe_payment_id: paymentIntentId,
       })
 
-      console.log(`Successfully added £${amount} to user ${userId}`)
+      const newBalance = await recalculateAndPersistStudentBalance(supabase as any, userId, new Date())
+      console.log(`Successfully processed deposit (£${amount}) for user ${userId}. New derived balance: £${newBalance}`)
     } catch (error: any) {
       console.error('Error processing payment:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { recalculateAndPersistStudentBalance } from '@/lib/balance/server'
 
 // This endpoint should be called periodically (e.g., every hour) to:
 // 1. Mark past lessons as completed
-// 2. Charge students for completed lessons
+// (Balance is derived from deposits/refunds minus the cost of ended lessons.)
 // You can set this up with Vercel Cron, GitHub Actions, or any scheduler
 
 export async function GET(request: NextRequest) {
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
 
     let processed = 0
     let errors = 0
+    const touchedStudents = new Set<string>()
 
     for (const lesson of pendingLessons || []) {
       try {
@@ -38,28 +40,20 @@ export async function GET(request: NextRequest) {
           .update({ status: 'completed' })
           .eq('id', lesson.id)
 
-        // Charge the student (deduct from balance)
-        const currentBalance = Number(lesson.student?.balance || 0)
-        const newBalance = currentBalance - Number(lesson.cost)
-
-        await supabase
-          .from('profiles')
-          .update({ balance: newBalance })
-          .eq('id', lesson.student_id)
-
-        // Create transaction record
-        await supabase.from('transactions').insert({
-          student_id: lesson.student_id,
-          type: 'lesson_charge',
-          amount: -Number(lesson.cost),
-          description: `Lesson charge - ${new Date(lesson.start_time).toLocaleDateString('en-GB')}`,
-          lesson_id: lesson.id,
-        })
-
+        touchedStudents.add(lesson.student_id)
         processed++
       } catch (err) {
         console.error(`Error processing lesson ${lesson.id}:`, err)
         errors++
+      }
+    }
+
+    // Sync derived balances for any students who had lessons transitioned
+    for (const studentId of touchedStudents) {
+      try {
+        await recalculateAndPersistStudentBalance(supabase as any, studentId, now)
+      } catch (err) {
+        console.error(`Error recalculating balance for student ${studentId}:`, err)
       }
     }
 

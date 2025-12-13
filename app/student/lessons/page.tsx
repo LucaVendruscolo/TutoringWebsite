@@ -113,23 +113,6 @@ export default function StudentLessonsPage() {
             .from('lessons')
             .update({ status: 'cancelled' })
             .eq('id', lesson.id)
-
-          // Refund the cost
-          if (profile) {
-            const newBalance = Number(profile.balance) + Number(lesson.cost)
-            await supabase
-              .from('profiles')
-              .update({ balance: newBalance })
-              .eq('id', profile.id)
-
-            await supabase.from('transactions').insert({
-              student_id: profile.id,
-              type: 'refund',
-              amount: lesson.cost,
-              description: `Refund for cancelled lesson`,
-              lesson_id: lesson.id,
-            })
-          }
         }
 
         toast.success(`Cancelled ${futureLessons.length} lessons`)
@@ -139,25 +122,7 @@ export default function StudentLessonsPage() {
           .from('lessons')
           .update({ status: 'cancelled' })
           .eq('id', selectedLesson.id)
-
-        // Refund the cost
-        if (profile) {
-          const newBalance = Number(profile.balance) + Number(selectedLesson.cost)
-          await supabase
-            .from('profiles')
-            .update({ balance: newBalance })
-            .eq('id', profile.id)
-
-          await supabase.from('transactions').insert({
-            student_id: profile.id,
-            type: 'refund',
-            amount: selectedLesson.cost,
-            description: `Refund for cancelled lesson`,
-            lesson_id: selectedLesson.id,
-          })
-        }
-
-        toast.success('Lesson cancelled and refunded')
+        toast.success('Lesson cancelled')
       }
 
       setIsCancelModalOpen(false)
@@ -400,7 +365,7 @@ export default function StudentLessonsPage() {
         {selectedLesson && (
           <div className="space-y-6">
             <Alert variant="warning">
-              Are you sure you want to cancel this lesson? The cost will be refunded to your balance.
+              Are you sure you want to cancel this lesson? Cancelled lessons won’t be counted against your balance.
             </Alert>
 
             <div className="p-4 rounded-xl bg-gray-50">
@@ -415,7 +380,7 @@ export default function StudentLessonsPage() {
                 • {selectedLesson.duration_minutes} minutes
               </p>
               <p className="text-sm text-mint-600 mt-2">
-                Refund: {formatCurrency(selectedLesson.cost)}
+                Lesson cost: {formatCurrency(selectedLesson.cost)}
               </p>
             </div>
 

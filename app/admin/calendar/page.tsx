@@ -53,15 +53,29 @@ export default function AdminCalendarPage() {
   const [doubleBookingWarning, setDoubleBookingWarning] = useState<string | null>(null)
   const supabase = createClient()
 
+  const syncBalance = async (studentId: string) => {
+    try {
+      await fetch('/api/balance/recalculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId }),
+      })
+    } catch {
+      // best-effort (UI uses derived balance elsewhere)
+    }
+  }
+
   // Form state
   const [formData, setFormData] = useState({
     studentId: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     time: '09:00',
     duration: 60,
+    cost: '',
     isRecurring: false,
     notes: '',
   })
+  const [costTouched, setCostTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const fetchData = async () => {
@@ -94,6 +108,16 @@ export default function AdminCalendarPage() {
     fetchData()
   }, [])
 
+  // Auto-calculate cost when student/duration changes, unless user manually overrides.
+  useEffect(() => {
+    if (!formData.studentId) return
+    if (costTouched) return
+    const student = students.find((s) => s.id === formData.studentId)
+    if (!student) return
+    const computed = calculateLessonCost(formData.duration, student.cost_per_hour)
+    setFormData((prev) => ({ ...prev, cost: computed.toFixed(2) }))
+  }, [formData.studentId, formData.duration, students, costTouched])
+
   const checkDoubleBooking = (startTime: Date, endTime: Date, excludeId?: string) => {
     const conflictingLesson = lessons.find((lesson) => {
       if (excludeId && lesson.id === excludeId) return false
@@ -123,7 +147,10 @@ export default function AdminCalendarPage() {
 
       const startTime = new Date(`${formData.date}T${formData.time}:00`)
       const endTime = addMinutes(startTime, formData.duration)
-      const cost = calculateLessonCost(formData.duration, student.cost_per_hour)
+      const parsedCost = parseFloat(formData.cost)
+      const cost = Number.isFinite(parsedCost)
+        ? parsedCost
+        : calculateLessonCost(formData.duration, student.cost_per_hour)
 
       // Check for double booking
       const conflictingLesson = checkDoubleBooking(startTime, endTime)
@@ -161,6 +188,7 @@ export default function AdminCalendarPage() {
         if (error) throw error
 
         toast.success('Recurring lessons created for 1 year!')
+        await syncBalance(formData.studentId)
       } else {
         const { error } = await supabase.from('lessons').insert({
           student_id: formData.studentId,
@@ -175,6 +203,7 @@ export default function AdminCalendarPage() {
 
         if (error) throw error
         toast.success('Lesson created!')
+        await syncBalance(formData.studentId)
       }
 
       setIsAddModalOpen(false)
@@ -183,9 +212,11 @@ export default function AdminCalendarPage() {
         date: format(new Date(), 'yyyy-MM-dd'),
         time: '09:00',
         duration: 60,
+        cost: '',
         isRecurring: false,
         notes: '',
       })
+      setCostTouched(false)
       fetchData()
     } catch (error: any) {
       toast.error(error.message || 'Failed to create lesson')
@@ -210,6 +241,7 @@ export default function AdminCalendarPage() {
 
         if (error) throw error
         toast.success('All recurring lessons deleted!')
+        await syncBalance(lesson.student_id)
       } else {
         const { error } = await supabase
           .from('lessons')
@@ -218,6 +250,7 @@ export default function AdminCalendarPage() {
 
         if (error) throw error
         toast.success('Lesson deleted!')
+        await syncBalance(lesson.student_id)
       }
 
       setIsViewModalOpen(false)
@@ -234,12 +267,16 @@ export default function AdminCalendarPage() {
     setIsSubmitting(true)
 
     try {
+      const previousStudentId = selectedLesson.student_id
       const student = students.find((s) => s.id === formData.studentId)
       if (!student) throw new Error('Student not found')
 
       const startTime = new Date(`${formData.date}T${formData.time}:00`)
       const endTime = addMinutes(startTime, formData.duration)
-      const cost = calculateLessonCost(formData.duration, student.cost_per_hour)
+      const parsedCost = parseFloat(formData.cost)
+      const cost = Number.isFinite(parsedCost)
+        ? parsedCost
+        : calculateLessonCost(formData.duration, student.cost_per_hour)
 
       // Check for double booking
       const conflictingLesson = checkDoubleBooking(startTime, endTime, selectedLesson.id)
@@ -267,6 +304,10 @@ export default function AdminCalendarPage() {
 
       toast.success('Lesson updated!')
       setIsEditModalOpen(false)
+      if (previousStudentId && previousStudentId !== formData.studentId) {
+        await syncBalance(previousStudentId)
+      }
+      await syncBalance(formData.studentId)
       setSelectedLesson(null)
       fetchData()
     } catch (error: any) {
@@ -288,9 +329,11 @@ export default function AdminCalendarPage() {
       date: format(parseISO(lesson.start_time), 'yyyy-MM-dd'),
       time: format(parseISO(lesson.start_time), 'HH:mm'),
       duration: lesson.duration_minutes,
+      cost: Number(lesson.cost).toFixed(2),
       isRecurring: false,
       notes: lesson.notes || '',
     })
+    setCostTouched(true) // keep the lesson's existing cost unless user changes it
     setIsViewModalOpen(false)
     setIsEditModalOpen(true)
   }
@@ -336,10 +379,12 @@ export default function AdminCalendarPage() {
                   date: format(selectedDate, 'yyyy-MM-dd'),
                   time: '09:00',
                   duration: 60,
+                  cost: '',
                   isRecurring: false,
                   notes: '',
                 })
                 setDoubleBookingWarning(null)
+                setCostTouched(false)
                 setIsAddModalOpen(true)
               }}
               leftIcon={<Plus className="w-5 h-5" />}
@@ -528,6 +573,19 @@ export default function AdminCalendarPage() {
             options={LESSON_DURATIONS}
           />
 
+          <Input
+            label="Cost (£)"
+            type="number"
+            step="0.01"
+            min="0"
+            value={formData.cost}
+            onChange={(e) => {
+              setCostTouched(true)
+              setFormData({ ...formData, cost: e.target.value })
+            }}
+            placeholder="Auto-calculated"
+          />
+
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -553,12 +611,7 @@ export default function AdminCalendarPage() {
               <p className="text-sm text-gray-600">
                 Cost per lesson:{' '}
                 <span className="font-semibold text-gray-900">
-                  {formatCurrency(
-                    calculateLessonCost(
-                      formData.duration,
-                      students.find((s) => s.id === formData.studentId)?.cost_per_hour || 0
-                    )
-                  )}
+                  {formatCurrency(Number(formData.cost) || 0)}
                 </span>
               </p>
             </div>
@@ -751,6 +804,19 @@ export default function AdminCalendarPage() {
             value={formData.duration}
             onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
             options={LESSON_DURATIONS}
+          />
+
+          <Input
+            label="Cost (£)"
+            type="number"
+            step="0.01"
+            min="0"
+            value={formData.cost}
+            onChange={(e) => {
+              setCostTouched(true)
+              setFormData({ ...formData, cost: e.target.value })
+            }}
+            placeholder="Auto-calculated"
           />
 
           <Input

@@ -35,10 +35,10 @@ export default function LoginPage() {
 
       if (error) throw error
 
-      // Get user role
+      // Get user role + parent name (for personalized welcome)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, parent_name')
         .eq('id', data.user.id)
         .single()
 
@@ -48,7 +48,10 @@ export default function LoginPage() {
       console.log('Profile error:', profileError)
       console.log('Role:', profile?.role)
 
-      toast.success('Welcome back!')
+      const parentName = profile?.parent_name?.trim?.() || ''
+      if (parentName) {
+        toast.success(`Welcome back, ${parentName}!`)
+      }
       
       if (profile?.role === 'admin') {
         console.log('Redirecting to admin dashboard')

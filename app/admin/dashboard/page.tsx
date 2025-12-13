@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate, formatTimeInTimezone } from '@/lib/utils'
+import { calculateDerivedBalance } from '@/lib/balance'
 import type { Lesson, Profile, DashboardStats } from '@/lib/types'
 import Link from 'next/link'
 import { parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subWeeks, format as formatDateFn } from 'date-fns'
@@ -58,6 +59,19 @@ export default function AdminDashboard() {
         .order('start_time', { ascending: true })
         .limit(5)
 
+      // Fetch credits (deposits + refunds) and ended lessons for derived balances
+      const { data: creditTxs } = await supabase
+        .from('transactions')
+        .select('student_id, type, amount')
+        .in('type', ['deposit', 'refund'])
+        .limit(5000)
+
+      const { data: endedLessons } = await supabase
+        .from('lessons')
+        .select('student_id, end_time, status, cost')
+        .lt('end_time', now.toISOString())
+        .neq('status', 'cancelled')
+
       // Calculate stats
       const lessonsThisWeek = allLessons?.filter((l) => {
         const start = parseISO(l.start_time)
@@ -71,10 +85,29 @@ export default function AdminDashboard() {
         })
         .reduce((sum, l) => sum + Number(l.cost), 0) || 0
 
-      const totalBalance = allStudents?.reduce(
-        (sum, s) => sum + Number(s.balance),
-        0
-      ) || 0
+      const creditsByStudent: Record<string, { type: any; amount: any }[]> = {}
+      for (const tx of creditTxs || []) {
+        if (tx.type !== 'deposit' && tx.type !== 'refund') continue
+        const sid = tx.student_id
+        if (!creditsByStudent[sid]) creditsByStudent[sid] = []
+        creditsByStudent[sid].push({ type: tx.type, amount: tx.amount })
+      }
+      const lessonsByStudent: Record<string, { status: any; end_time: any; cost: any }[]> = {}
+      for (const l of endedLessons || []) {
+        const sid = l.student_id
+        if (!lessonsByStudent[sid]) lessonsByStudent[sid] = []
+        lessonsByStudent[sid].push({ status: l.status, end_time: l.end_time, cost: l.cost })
+      }
+
+      const totalBalance =
+        allStudents?.reduce((sum, s) => {
+          const bal = calculateDerivedBalance({
+            credits: creditsByStudent[s.id] || [],
+            lessons: lessonsByStudent[s.id] || [],
+            now,
+          })
+          return sum + bal
+        }, 0) || 0
 
       setStats({
         totalStudents: activeStudents.length,

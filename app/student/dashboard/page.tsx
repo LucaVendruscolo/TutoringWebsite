@@ -21,6 +21,7 @@ import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
+import { calculateDerivedBalance } from '@/lib/balance'
 import type { Profile, StudentDashboardStats } from '@/lib/types'
 import Link from 'next/link'
 import { startOfMonth, endOfMonth, parseISO, isWithinInterval, subDays, format } from 'date-fns'
@@ -83,10 +84,30 @@ export default function StudentDashboard() {
       .lte('start_time', now.toISOString())
       .eq('status', 'completed')
 
+    // Derived balance = credits (deposits+refunds) - ended lessons cost
+    const { data: creditTxs } = await supabase
+      .from('transactions')
+      .select('type, amount')
+      .eq('student_id', user.id)
+      .in('type', ['deposit', 'refund'])
+
+    const { data: pastLessons } = await supabase
+      .from('lessons')
+      .select('status, end_time, cost')
+      .eq('student_id', user.id)
+      .lt('end_time', now.toISOString())
+      .neq('status', 'cancelled')
+
+    const derivedBalance = calculateDerivedBalance({
+      credits: (creditTxs as any) || [],
+      lessons: (pastLessons as any) || [],
+      now,
+    })
+
     setStats({
       upcomingLessons: allUpcomingLessons || [],
       nextLesson: nextLesson || null,
-      balance: profileData?.balance || 0,
+      balance: derivedBalance,
       lessonsCompletedLastMonth: completedLessons?.length || 0,
       totalSpent: 0,
     })
@@ -96,6 +117,10 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     fetchData()
+    const interval = setInterval(() => {
+      fetchData()
+    }, 60_000)
+    return () => clearInterval(interval)
   }, [supabase])
 
   const handleCancelAllUpcoming = async () => {
@@ -119,34 +144,15 @@ export default function StudentDashboard() {
         return
       }
 
-      let totalRefund = 0
-
-      // Cancel each lesson and refund
+      // Cancel each lesson
       for (const lesson of upcomingLessons) {
         await supabase
           .from('lessons')
           .update({ status: 'cancelled' })
           .eq('id', lesson.id)
-
-        totalRefund += Number(lesson.cost)
-
-        await supabase.from('transactions').insert({
-          student_id: profile.id,
-          type: 'refund',
-          amount: lesson.cost,
-          description: 'Refund for cancelled lesson',
-          lesson_id: lesson.id,
-        })
       }
 
-      // Update balance
-      const newBalance = Number(profile.balance) + totalRefund
-      await supabase
-        .from('profiles')
-        .update({ balance: newBalance })
-        .eq('id', profile.id)
-
-      toast.success(`Cancelled ${upcomingLessons.length} lessons. Refunded ${formatCurrency(totalRefund)}`)
+      toast.success(`Cancelled ${upcomingLessons.length} lessons`)
       setIsCancelAllModalOpen(false)
       fetchData()
     } catch (error: any) {
@@ -192,34 +198,15 @@ export default function StudentDashboard() {
         return
       }
 
-      let totalRefund = 0
-
-      // Cancel each lesson and refund
+      // Cancel each lesson
       for (const lesson of holidayLessons) {
         await supabase
           .from('lessons')
           .update({ status: 'cancelled' })
           .eq('id', lesson.id)
-
-        totalRefund += Number(lesson.cost)
-
-        await supabase.from('transactions').insert({
-          student_id: profile.id,
-          type: 'refund',
-          amount: lesson.cost,
-          description: 'Refund for holiday cancellation',
-          lesson_id: lesson.id,
-        })
       }
 
-      // Update balance
-      const newBalance = Number(profile.balance) + totalRefund
-      await supabase
-        .from('profiles')
-        .update({ balance: newBalance })
-        .eq('id', profile.id)
-
-      toast.success(`Cancelled ${holidayLessons.length} lessons during holiday. Refunded ${formatCurrency(totalRefund)}`)
+      toast.success(`Cancelled ${holidayLessons.length} lessons during holiday`)
       setIsHolidayModalOpen(false)
       setHolidayDates({ start: '', end: '' })
       fetchData()
@@ -289,7 +276,7 @@ export default function StudentDashboard() {
           />
         </div>
         <p className="text-xs text-gray-400">
-          Lessons are marked as completed within 24 hours after they end.
+          Balance updates when lessons end; lesson status may take a bit longer to flip to “completed”.
         </p>
 
         {/* Quick Actions */}
