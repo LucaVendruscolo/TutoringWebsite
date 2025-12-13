@@ -6,9 +6,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 })
 
+function getBaseUrl(request: NextRequest): string {
+  const fromEnv = process.env.NEXT_PUBLIC_APP_URL
+  if (fromEnv) {
+    try {
+      // Ensure it includes a scheme (https://...) and normalize to origin
+      return new URL(fromEnv).origin
+    } catch {
+      console.warn(
+        `Invalid NEXT_PUBLIC_APP_URL (${fromEnv}). Falling back to request origin (${request.nextUrl.origin}).`
+      )
+    }
+  }
+
+  return request.nextUrl.origin
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
+    const baseUrl = getBaseUrl(request)
     
     // Get current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -51,8 +68,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/student/balance?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/student/balance?cancelled=true`,
+      success_url: `${baseUrl}/student/balance?success=true`,
+      cancel_url: `${baseUrl}/student/balance?cancelled=true`,
       customer_email: profile?.email,
       metadata: {
         user_id: user.id,
