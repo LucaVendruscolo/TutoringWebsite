@@ -8,7 +8,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
-  const signature = request.headers.get('stripe-signature')!
+  const signature = request.headers.get('stripe-signature')
+
+  if (!signature) {
+    console.error('Missing stripe-signature header')
+    return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
+  }
 
   let event: Stripe.Event
 
@@ -30,13 +35,36 @@ export async function POST(request: NextRequest) {
     
     const userId = session.metadata?.user_id
     const amount = parseFloat(session.metadata?.amount || '0')
+    const paymentIntentId =
+      typeof session.payment_intent === 'string' ? session.payment_intent : null
 
-    if (!userId || !amount) {
-      console.error('Missing metadata in checkout session')
+    if (!userId || !amount || !paymentIntentId) {
+      console.error('Missing required data in checkout session', {
+        hasUserId: Boolean(userId),
+        amount,
+        hasPaymentIntentId: Boolean(paymentIntentId),
+        eventId: event.id,
+      })
       return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
     }
 
     try {
+      // Idempotency: if we've already recorded this payment intent, do nothing.
+      const { data: existingTx, error: existingTxError } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('stripe_payment_id', paymentIntentId)
+        .limit(1)
+
+      if (existingTxError) {
+        console.error('Error checking existing transaction:', existingTxError)
+      }
+
+      if (existingTx && existingTx.length > 0) {
+        console.log('Duplicate webhook ignored', { paymentIntentId, eventId: event.id })
+        return NextResponse.json({ received: true })
+      }
+
       // Get current balance
       const { data: profile } = await supabase
         .from('profiles')
@@ -61,7 +89,7 @@ export async function POST(request: NextRequest) {
         type: 'deposit',
         amount: amount,
         description: `Deposit of £${amount.toFixed(2)}`,
-        stripe_payment_id: session.payment_intent as string,
+        stripe_payment_id: paymentIntentId,
       })
 
       console.log(`Successfully added £${amount} to user ${userId}`)
