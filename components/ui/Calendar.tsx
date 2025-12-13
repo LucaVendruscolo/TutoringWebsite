@@ -63,23 +63,28 @@ export function Calendar({
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   return (
-    <div className={cn('bg-white rounded-2xl p-5 shadow-soft border border-gray-100', className)}>
+    <div
+      className={cn(
+        'bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-gray-800',
+        className
+      )}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <button
           onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4 text-gray-500" />
+          <ChevronLeft className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </button>
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {format(currentMonth, 'MMMM yyyy')}
         </h2>
         <button
           onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
-          <ChevronRight className="w-4 h-4 text-gray-500" />
+          <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </button>
       </div>
 
@@ -88,7 +93,7 @@ export function Calendar({
         {weekDays.map((day) => (
           <div
             key={day}
-            className="text-center text-xs font-medium text-gray-400 py-2"
+            className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-2"
           >
             {day}
           </div>
@@ -111,16 +116,16 @@ export function Calendar({
               onClick={() => onDateSelect?.(day)}
               className={cn(
                 'min-h-[80px] p-2 rounded-xl cursor-pointer transition-all duration-200',
-                isCurrentMonth ? 'bg-gray-50/50' : 'bg-transparent',
-                isSelected && 'ring-2 ring-primary-500 bg-white',
-                isDayToday && !isSelected && 'ring-1 ring-gray-300 bg-white',
-                'hover:bg-gray-100/80'
+                isCurrentMonth ? 'bg-gray-50/50 dark:bg-gray-950/40' : 'bg-transparent',
+                isSelected && 'ring-2 ring-primary-500 bg-white dark:bg-gray-900',
+                isDayToday && !isSelected && 'ring-1 ring-gray-300 dark:ring-gray-700 bg-white dark:bg-gray-900',
+                'hover:bg-gray-100/80 dark:hover:bg-gray-800/60'
               )}
             >
               <div
                 className={cn(
                   'text-sm font-medium mb-1',
-                  isCurrentMonth ? 'text-gray-900' : 'text-gray-300',
+                  isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : 'text-gray-300 dark:text-gray-700',
                   isDayToday && 'text-primary-500'
                 )}
               >
@@ -140,17 +145,17 @@ export function Calendar({
                       className={cn(
                         'text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-colors',
                         lesson.status === 'cancelled'
-                          ? 'bg-gray-100 text-gray-400 line-through'
+                          ? 'bg-gray-100 text-gray-400 line-through dark:bg-gray-800 dark:text-gray-500'
                           : lesson.status === 'completed'
-                          ? 'bg-mint-50 text-mint-600'
-                          : 'bg-primary-50 text-primary-600'
+                          ? 'bg-mint-50 text-mint-600 dark:bg-mint-500/10 dark:text-mint-200'
+                          : 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-200'
                       )}
                     >
                       {lesson.student?.student_name || format(parseISO(lesson.start_time), 'HH:mm')}
                     </div>
                   ))}
                   {dayLessons.length > 2 && (
-                    <div className="text-xs text-gray-400 px-1">
+                    <div className="text-xs text-gray-400 dark:text-gray-500 px-1">
                       +{dayLessons.length - 2} more
                     </div>
                   )}
@@ -192,7 +197,7 @@ export function WeekCalendar({
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-soft border border-gray-100 overflow-x-auto">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-soft border border-gray-100 dark:border-gray-800 overflow-x-auto">
       <div className="min-w-[800px]">
         {/* Header */}
         <div className="grid grid-cols-8 gap-1 mb-2">
@@ -202,7 +207,7 @@ export function WeekCalendar({
               key={day.toISOString()}
               className={cn(
                 'text-center py-2 rounded-lg',
-                isToday(day) && 'bg-primary-50'
+                isToday(day) && 'bg-primary-50 dark:bg-primary-500/10'
               )}
             >
               <div className="text-xs text-gray-400 font-medium">
@@ -211,7 +216,7 @@ export function WeekCalendar({
               <div
                 className={cn(
                   'text-lg font-semibold',
-                  isToday(day) ? 'text-primary-500' : 'text-gray-900'
+                  isToday(day) ? 'text-primary-500' : 'text-gray-900 dark:text-gray-100'
                 )}
               >
                 {format(day, 'd')}
@@ -221,10 +226,10 @@ export function WeekCalendar({
         </div>
 
         {/* Time grid */}
-        <div className="border-t border-gray-100">
+        <div className="border-t border-gray-100 dark:border-gray-800">
           {hours.map((hour) => (
-            <div key={hour} className="grid grid-cols-8 gap-1 border-b border-gray-50">
-              <div className="w-16 py-4 text-xs text-gray-400 text-right pr-2">
+            <div key={hour} className="grid grid-cols-8 gap-1 border-b border-gray-50 dark:border-gray-800">
+              <div className="w-16 py-4 text-xs text-gray-400 dark:text-gray-500 text-right pr-2">
                 {format(new Date().setHours(hour, 0), 'h a')}
               </div>
               {days.map((day) => {
@@ -232,7 +237,7 @@ export function WeekCalendar({
                 return (
                   <div
                     key={day.toISOString()}
-                    className="py-1 min-h-[60px] border-l border-gray-50"
+                    className="py-1 min-h-[60px] border-l border-gray-50 dark:border-gray-800"
                   >
                     {dayLessons.map((lesson) => (
                       <div
@@ -241,10 +246,10 @@ export function WeekCalendar({
                         className={cn(
                           'mx-1 p-2 rounded-lg cursor-pointer text-xs transition-colors hover:opacity-80',
                           lesson.status === 'cancelled'
-                            ? 'bg-gray-100 text-gray-500'
+                            ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300'
                             : lesson.status === 'completed'
-                            ? 'bg-mint-50 text-mint-700'
-                            : 'bg-primary-50 text-primary-700'
+                            ? 'bg-mint-50 text-mint-700 dark:bg-mint-500/10 dark:text-mint-200'
+                            : 'bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-200'
                         )}
                         style={{
                           height: `${(lesson.duration_minutes / 60) * 60}px`,
@@ -253,7 +258,7 @@ export function WeekCalendar({
                         <div className="font-medium truncate">
                           {lesson.student?.student_name || 'Student'}
                         </div>
-                        <div className="text-gray-400 text-[10px]">
+                        <div className="text-gray-400 dark:text-gray-500 text-[10px]">
                           {lesson.duration_minutes} min
                         </div>
                       </div>

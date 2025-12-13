@@ -361,8 +361,8 @@ export default function AdminCalendarPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
-            <p className="text-gray-500 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Calendar</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
               View and manage all your lessons
             </p>
           </div>

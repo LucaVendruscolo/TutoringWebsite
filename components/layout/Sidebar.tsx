@@ -32,6 +32,7 @@ const adminLinks = [
   { href: '/admin/students', label: 'Students', icon: Users },
   { href: '/admin/calendar', label: 'Calendar', icon: Calendar },
   { href: '/admin/payments', label: 'Payments', icon: CreditCard },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
 const studentLinks = [

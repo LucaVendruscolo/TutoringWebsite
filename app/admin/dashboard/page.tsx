@@ -161,8 +161,8 @@ export default function AdminDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Welcome back! Here's an overview of your tutoring business.
           </p>
         </div>
@@ -220,8 +220,9 @@ export default function AdminDashboard() {
                   />
                   <Tooltip 
                     contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: 'var(--toast-bg)',
+                      color: 'var(--toast-color)',
+                      border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '8px 12px',
                     }}

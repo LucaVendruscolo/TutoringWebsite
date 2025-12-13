@@ -66,28 +66,28 @@ export function Modal({
             }}
             style={{ willChange: 'transform, opacity' }}
             className={cn(
-              'relative w-full bg-white rounded-2xl shadow-soft-xl p-6',
+              'relative w-full bg-white dark:bg-gray-900 rounded-2xl shadow-soft-xl p-6 border border-transparent dark:border-gray-800',
               sizes[size]
             )}
           >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <X className="w-4 h-4 text-gray-400" />
+              <X className="w-4 h-4 text-gray-400 dark:text-gray-500" />
             </button>
 
             {/* Header */}
             {(title || description) && (
               <div className="mb-5 pr-8">
                 {title && (
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {title}
                   </h2>
                 )}
                 {description && (
-                  <p className="mt-1 text-sm text-gray-500">{description}</p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
                 )}
               </div>
             )}
