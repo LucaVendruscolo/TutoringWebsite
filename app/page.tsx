@@ -45,7 +45,7 @@ export default function HomePage() {
     { 
       icon: Clock, 
       title: 'Lesson History', 
-      desc: 'Track your progress over time' 
+      desc: 'Track your lessons' 
     },
   ]
 
