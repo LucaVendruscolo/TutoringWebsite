@@ -1,11 +1,11 @@
 'use client'
 
-import { forwardRef, ReactNode } from 'react'
-import { motion, HTMLMotionProps } from 'framer-motion'
+import { forwardRef, ReactNode, ButtonHTMLAttributes } from 'react'
+import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref' | 'children'> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
@@ -25,6 +25,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       rightIcon,
       children,
       disabled,
+      type = 'button',
       ...props
     },
     ref
@@ -54,6 +55,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
+        type={type}
         className={cn(baseStyles, variants[variant], sizes[size], className)}
         disabled={disabled || isLoading}
         whileHover={{ scale: disabled || isLoading ? 1 : 1.01 }}
@@ -70,7 +72,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           leftIcon && <span className="mr-2">{leftIcon}</span>
         )}
-        {children}
+        {children as ReactNode}
         {rightIcon && !isLoading && <span className="ml-2">{rightIcon}</span>}
       </motion.button>
     )
