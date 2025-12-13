@@ -55,7 +55,8 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
     <div className="min-h-screen flex bg-[#fafafa] dark:bg-gray-950">
       <Sidebar role={role} />
       
-      <main className="flex-1 min-w-0 p-5 md:p-8">
+      {/* On mobile, add top padding so the hamburger button doesn't overlap content */}
+      <main className="flex-1 min-w-0 p-5 pt-16 md:p-8 md:pt-8">
         {/* Password warning - positioned at bottom to avoid toast overlap */}
         <AnimatePresence>
           {showPasswordWarning && (

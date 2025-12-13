@@ -84,10 +84,12 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full w-[260px] bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-100 dark:border-gray-800',
+          // Mobile: drawer (not full width). Desktop: fixed-width sidebar.
+          'fixed top-0 left-0 z-50 h-full w-[85vw] max-w-[320px] md:w-[260px]',
+          'bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-100 dark:border-gray-800 shadow-soft-lg',
           'transition-transform duration-300 ease-out',
-          isOpen ? 'translate-x-0' : '-translate-x-full',
-          'md:translate-x-0 md:relative md:flex-shrink-0'
+          isOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none',
+          'md:translate-x-0 md:relative md:flex-shrink-0 md:pointer-events-auto'
         )}
       >
         <div className="flex flex-col h-full p-5">
