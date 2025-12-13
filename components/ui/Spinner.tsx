@@ -27,10 +27,10 @@ export function Spinner({ size = 'md', className }: SpinnerProps) {
 
 export function PageLoader() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm z-50">
       <div className="flex flex-col items-center gap-4">
         <Spinner size="lg" />
-        <p className="text-gray-500 animate-pulse">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400 animate-pulse">Loading...</p>
       </div>
     </div>
   )

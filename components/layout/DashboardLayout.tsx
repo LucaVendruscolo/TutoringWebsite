@@ -45,14 +45,14 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
+      <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-gray-950">
         <Spinner size="lg" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex bg-[#fafafa]">
+    <div className="min-h-screen flex bg-[#fafafa] dark:bg-gray-950">
       <Sidebar role={role} />
       
       <main className="flex-1 min-w-0 p-5 md:p-8">

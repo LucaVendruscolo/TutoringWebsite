@@ -21,28 +21,28 @@ export function Alert({
 }: AlertProps) {
   const variants = {
     info: {
-      bg: 'bg-accent-50 border-accent-200',
+      bg: 'bg-accent-50 border-accent-200 dark:bg-accent-500/10 dark:border-accent-500/30',
       icon: <Info className="w-5 h-5 text-accent-500" />,
-      title: 'text-accent-800',
-      text: 'text-accent-700',
+      title: 'text-accent-800 dark:text-accent-200',
+      text: 'text-accent-700 dark:text-accent-200/90',
     },
     success: {
-      bg: 'bg-mint-50 border-mint-200',
+      bg: 'bg-mint-50 border-mint-200 dark:bg-mint-500/10 dark:border-mint-500/30',
       icon: <CheckCircle className="w-5 h-5 text-mint-500" />,
-      title: 'text-mint-800',
-      text: 'text-mint-700',
+      title: 'text-mint-800 dark:text-mint-200',
+      text: 'text-mint-700 dark:text-mint-200/90',
     },
     warning: {
-      bg: 'bg-amber-50 border-amber-200',
+      bg: 'bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/30',
       icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
-      title: 'text-amber-800',
-      text: 'text-amber-700',
+      title: 'text-amber-800 dark:text-amber-200',
+      text: 'text-amber-700 dark:text-amber-200/90',
     },
     error: {
-      bg: 'bg-coral-50 border-coral-200',
+      bg: 'bg-coral-50 border-coral-200 dark:bg-coral-500/10 dark:border-coral-500/30',
       icon: <XCircle className="w-5 h-5 text-coral-500" />,
-      title: 'text-coral-800',
-      text: 'text-coral-700',
+      title: 'text-coral-800 dark:text-coral-200',
+      text: 'text-coral-700 dark:text-coral-200/90',
     },
   }
 

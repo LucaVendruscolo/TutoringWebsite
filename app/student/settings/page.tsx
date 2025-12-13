@@ -12,6 +12,7 @@ import {
   EyeOff,
   CheckCircle,
   ArrowLeft,
+  Moon,
 } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -20,11 +21,13 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
+import { Switch } from '@/components/ui/Switch'
 import { createClient } from '@/lib/supabase/client'
 import { TIMEZONES } from '@/lib/utils'
 import type { Profile } from '@/lib/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
+import { useTheme } from '@/components/providers/ThemeProvider'
 
 export default function StudentSettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -38,6 +41,7 @@ export default function StudentSettingsPage() {
   })
   const [showPasswords, setShowPasswords] = useState(false)
   const supabase = createClient()
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -227,6 +231,31 @@ export default function StudentSettingsPage() {
                 Save Changes
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Appearance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Moon className="w-5 h-5" />
+              Appearance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-medium text-gray-900 dark:text-gray-100">Dark mode</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Toggle between light and dark theme.
+                </p>
+              </div>
+              <Switch
+                checked={theme === 'dark'}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                aria-label="Toggle dark mode"
+              />
+            </div>
           </CardContent>
         </Card>
 

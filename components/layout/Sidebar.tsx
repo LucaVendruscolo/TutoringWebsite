@@ -62,9 +62,9 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Mobile menu button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-40 p-2.5 rounded-full bg-white shadow-soft md:hidden"
+        className="fixed top-4 left-4 z-40 p-2.5 rounded-full bg-white dark:bg-gray-900 shadow-soft md:hidden"
       >
-        <Menu className="w-5 h-5 text-gray-700" />
+        <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
 
       {/* Mobile overlay */}
@@ -84,7 +84,7 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full w-[260px] bg-white/95 backdrop-blur-xl border-r border-gray-100',
+          'fixed top-0 left-0 z-50 h-full w-[260px] bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-100 dark:border-gray-800',
           'transition-transform duration-300 ease-out',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'md:translate-x-0 md:relative md:flex-shrink-0'
@@ -98,14 +98,16 @@ export function Sidebar({ role }: SidebarProps) {
                 <div className="p-2 rounded-xl bg-primary-500">
                   <GraduationCap className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg font-semibold text-gray-900">Luca's Tutoring</span>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Luca&apos;s Tutoring
+                </span>
               </div>
             </Link>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 rounded-full hover:bg-gray-100 md:hidden transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden transition-colors"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             </button>
           </div>
 
@@ -125,7 +127,7 @@ export function Sidebar({ role }: SidebarProps) {
                       'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                       isActive
                         ? 'bg-primary-500 text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     )}
                   >
                     <Icon className="w-[18px] h-[18px]" />
@@ -139,7 +141,7 @@ export function Sidebar({ role }: SidebarProps) {
           {/* Logout button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-200"
           >
             <LogOut className="w-[18px] h-[18px]" />
             <span className="font-medium text-sm">Logout</span>

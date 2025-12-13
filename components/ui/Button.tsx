@@ -29,7 +29,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.98]'
+      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.98] dark:focus:ring-offset-gray-950'
 
     const variants = {
       primary:
@@ -37,9 +37,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       secondary:
         'bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500/50',
       outline:
-        'border border-gray-300 text-gray-900 hover:bg-gray-50 focus:ring-gray-500/50',
+        'border border-gray-300 text-gray-900 hover:bg-gray-50 focus:ring-gray-500/50 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-900',
       ghost:
-        'text-primary-500 hover:bg-primary-50 focus:ring-primary-500/50',
+        'text-primary-500 hover:bg-primary-50 focus:ring-primary-500/50 dark:hover:bg-primary-500/10',
       danger:
         'bg-coral-500 text-white hover:bg-coral-600 focus:ring-coral-500/50',
     }

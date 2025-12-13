@@ -18,9 +18,10 @@ export function Card({
   ...props
 }: CardProps) {
   const variants = {
-    default: 'bg-white border border-gray-100',
-    glass: 'bg-white/80 backdrop-blur-xl border border-gray-100/50',
-    solid: 'bg-white border border-gray-200',
+    default: 'bg-white border border-gray-100 dark:bg-gray-900 dark:border-gray-800',
+    glass:
+      'bg-white/80 backdrop-blur-xl border border-gray-100/50 dark:bg-gray-900/70 dark:border-gray-800/60',
+    solid: 'bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800',
   }
 
   const paddings = {
@@ -77,7 +78,7 @@ export function CardTitle({
   children: React.ReactNode
 }) {
   return (
-    <h3 className={cn('text-lg font-semibold text-gray-900', className)}>
+    <h3 className={cn('text-lg font-semibold text-gray-900 dark:text-gray-100', className)}>
       {children}
     </h3>
   )
@@ -91,7 +92,7 @@ export function CardDescription({
   children: React.ReactNode
 }) {
   return (
-    <p className={cn('text-sm text-gray-500 mt-1', className)}>
+    <p className={cn('text-sm text-gray-500 dark:text-gray-400 mt-1', className)}>
       {children}
     </p>
   )
@@ -115,7 +116,7 @@ export function CardFooter({
   children: React.ReactNode
 }) {
   return (
-    <div className={cn('mt-6 pt-5 border-t border-gray-100', className)}>
+    <div className={cn('mt-6 pt-5 border-t border-gray-100 dark:border-gray-800', className)}>
       {children}
     </div>
   )

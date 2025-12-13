@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
+import { ThemeProvider, getThemeInitScript } from '@/components/providers/ThemeProvider'
 
 export const metadata: Metadata = {
   title: "Luca's Tutoring - Online Tutoring Made Simple",
@@ -13,35 +14,38 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <div className="bg-abstract" />
-        {children}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#fff',
-              color: '#333',
-              borderRadius: '12px',
-              padding: '16px',
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
-            },
-            success: {
-              iconTheme: {
-                primary: '#22c55e',
-                secondary: '#fff',
+        <script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
+        <ThemeProvider>
+          <div className="bg-abstract" />
+          {children}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'var(--toast-bg)',
+                color: 'var(--toast-color)',
+                borderRadius: '12px',
+                padding: '16px',
+                boxShadow: 'var(--toast-shadow)',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ff4757',
-                secondary: '#fff',
+              success: {
+                iconTheme: {
+                  primary: '#22c55e',
+                  secondary: '#fff',
+                },
               },
-            },
-          }}
-        />
+              error: {
+                iconTheme: {
+                  primary: '#ff4757',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   )
