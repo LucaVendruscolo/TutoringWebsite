@@ -80,20 +80,10 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className="text-5xl md:text-6xl font-semibold text-gray-900 mb-4 tracking-tight"
+          className="text-5xl md:text-6xl font-semibold text-gray-900 mb-10 tracking-tight"
         >
           Luca's Tutoring
         </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-xl text-gray-500 mb-10 max-w-xl mx-auto"
-        >
-          Your personal tutoring portal. Book lessons, track progress, and manage payments — all in one place.
-        </motion.p>
 
         {/* CTA Button */}
         <motion.div
