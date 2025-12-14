@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import { THEME_STORAGE_KEY } from '@/lib/theme'
+import { createClient } from '@/lib/supabase/client'
 
 export type Theme = 'light' | 'dark'
 
@@ -17,7 +18,8 @@ function getPreferredTheme(): Theme {
   if (typeof window === 'undefined') return 'light'
   const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
   if (stored === 'dark' || stored === 'light') return stored
-  return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light'
+  // Default to light mode (no system preference detection)
+  return 'light'
 }
 
 function applyTheme(theme: Theme) {
@@ -27,6 +29,23 @@ function applyTheme(theme: Theme) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light')
+  const supabase = useMemo(() => createClient(), [])
+
+  // Save theme to database
+  const saveThemeToDb = useCallback(async (newTheme: Theme) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ dark_mode: newTheme === 'dark' })
+          .eq('id', user.id)
+      }
+    } catch (error) {
+      // Silently fail - localStorage will still work
+      console.error('Failed to save theme to database:', error)
+    }
+  }, [supabase])
 
   useEffect(() => {
     const initial = getPreferredTheme()
@@ -34,7 +53,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyTheme(initial)
   }, [])
 
-  const setTheme = (next: Theme) => {
+  const setTheme = useCallback((next: Theme) => {
     setThemeState(next)
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, next)
@@ -42,7 +61,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
     applyTheme(next)
-  }
+    // Also save to database
+    saveThemeToDb(next)
+  }, [saveThemeToDb])
 
   const value = useMemo<ThemeContextValue>(
     () => ({
@@ -50,7 +71,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTheme,
       toggle: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
     }),
-    [theme]
+    [theme, setTheme]
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
@@ -61,5 +82,3 @@ export function useTheme(): ThemeContextValue {
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
   return ctx
 }
-
-

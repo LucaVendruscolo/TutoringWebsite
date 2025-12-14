@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
         cost_per_hour: costPerHour,
         timezone: timezone || 'Europe/London',
         password_changed: false,
+        dark_mode: false, // Default to light mode for new accounts
       })
       .eq('id', newUser.user.id)
 

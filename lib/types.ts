@@ -11,6 +11,7 @@ export interface Profile {
   timezone: string
   password_changed: boolean
   is_active: boolean
+  dark_mode: boolean
   created_at: string
   updated_at: string
 }

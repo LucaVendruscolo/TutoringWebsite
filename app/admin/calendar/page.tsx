@@ -27,6 +27,7 @@ import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
 import { createClient } from '@/lib/supabase/client'
 import {
+  cn,
   formatCurrency,
   formatDate,
   formatTimeInTimezone,
