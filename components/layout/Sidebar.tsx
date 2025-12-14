@@ -67,8 +67,16 @@ export function Sidebar({ role }: SidebarProps) {
         const activeEl = document.activeElement
         if (activeEl?.tagName !== 'INPUT' && activeEl?.tagName !== 'TEXTAREA' && activeEl?.tagName !== 'SELECT') {
           setIsKeyboardOpen(false)
+          // Force scroll reset to fix Chrome mobile viewport bug
+          // This prevents the "extra scroll space" issue after keyboard dismisses
+          window.scrollTo(0, window.scrollY)
+          // Also reset body scroll position
+          document.body.style.height = '100%'
+          requestAnimationFrame(() => {
+            document.body.style.height = ''
+          })
         }
-      }, 100)
+      }, 150)
     }
 
     document.addEventListener('focusin', handleFocusIn)
