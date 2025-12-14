@@ -56,7 +56,8 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       <Sidebar role={role} />
       
       {/* On mobile, add top padding so the hamburger button doesn't overlap content */}
-      <main className="flex-1 min-w-0 p-5 pt-16 md:p-8 md:pt-8">
+      {/* On desktop, add left margin to account for the sidebar's offset from edge */}
+      <main className="flex-1 min-w-0 p-5 pt-16 md:p-8 md:pt-6 md:ml-3">
         {/* Password warning - positioned at bottom to avoid toast overlap */}
         <AnimatePresence>
           {showPasswordWarning && (

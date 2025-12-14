@@ -200,8 +200,8 @@ export default function StudentLessonsPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">My Lessons</h1>
-            <p className="text-gray-500 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Lessons</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
               View and manage your tutoring sessions
             </p>
           </div>
@@ -246,8 +246,8 @@ export default function StudentLessonsPage() {
                       lesson.status === 'cancelled'
                         ? 'opacity-60'
                         : isPast
-                        ? 'bg-gray-50'
-                        : ''
+                        ? 'bg-gray-50 dark:bg-gray-800/50'
+                        : 'dark:bg-gray-800'
                     }`}
                   >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -273,16 +273,16 @@ export default function StudentLessonsPage() {
                           <p
                             className={`font-medium ${
                               lesson.status === 'cancelled'
-                                ? 'text-gray-400 line-through'
-                                : 'text-gray-900'
+                                ? 'text-gray-400 dark:text-gray-500 line-through'
+                                : 'text-gray-900 dark:text-gray-100'
                             }`}
                           >
                             Tutoring Session
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {formatDate(lesson.start_time, 'EEEE, MMMM d, yyyy')}
                           </p>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-400 dark:text-gray-500">
                             {formatTimeInTimezone(
                               lesson.start_time,
                               profile?.timezone || 'Europe/London'
@@ -318,7 +318,7 @@ export default function StudentLessonsPage() {
                             Weekly
                           </Badge>
                         )}
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {lesson.duration_minutes} min • {formatCurrency(lesson.cost)}
                         </span>
 
@@ -368,11 +368,11 @@ export default function StudentLessonsPage() {
               Are you sure you want to cancel this lesson? Cancelled lessons won’t be counted against your balance.
             </Alert>
 
-            <div className="p-4 rounded-xl bg-gray-50">
-              <p className="font-medium text-gray-900">
+            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800">
+              <p className="font-medium text-gray-900 dark:text-gray-100">
                 {formatDate(selectedLesson.start_time, 'EEEE, MMMM d, yyyy')}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {formatTimeInTimezone(
                   selectedLesson.start_time,
                   profile?.timezone || 'Europe/London'

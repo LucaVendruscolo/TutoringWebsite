@@ -320,15 +320,6 @@ export default function LoginPage() {
           </Card>
         </motion.div>
 
-        {/* Subtle footer */}
-        <motion.p 
-          className="text-center text-xs text-gray-400 mt-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          © {new Date().getFullYear()} Luca's Tutoring
-        </motion.p>
       </motion.div>
     </div>
   )

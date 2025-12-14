@@ -11,6 +11,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ArrowLeft,
+  Plus,
+  Banknote,
 } from 'lucide-react'
 import Link from 'next/link'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -19,11 +21,15 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatCard } from '@/components/ui/StatCard'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
+import { Select } from '@/components/ui/Select'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { calculateDerivedBalance } from '@/lib/balance'
 import type { Profile, Transaction } from '@/lib/types'
 import { subYears } from 'date-fns'
+import toast from 'react-hot-toast'
 
 export default function AdminPaymentsPage() {
   const [students, setStudents] = useState<Profile[]>([])
@@ -32,74 +38,125 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null)
+  
+  // Manual payment modal state
+  const [isManualPaymentOpen, setIsManualPaymentOpen] = useState(false)
+  const [manualPaymentData, setManualPaymentData] = useState({
+    studentId: '',
+    amount: '',
+    description: '',
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
   const supabase = createClient()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const now = new Date()
-      const oneYearAgo = subYears(now, 1)
+  const fetchData = async () => {
+    const now = new Date()
+    const oneYearAgo = subYears(now, 1)
 
-      // Fetch students
-      const { data: studentsData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'student')
-        .order('student_name')
+    // Fetch students
+    const { data: studentsData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'student')
+      .order('student_name')
 
-      if (studentsData) {
-        setStudents(studentsData)
-      }
-
-      // Fetch transactions for display (also used for credits)
-      const { data: transactionsData } = await supabase
-        .from('transactions')
-        .select('*, student:profiles(*)')
-        .order('created_at', { ascending: false })
-        .limit(500)
-
-      if (transactionsData) {
-        setTransactions(transactionsData)
-      }
-
-      // Fetch all lessons that have ended (used for debits)
-      const { data: pastLessons } = await supabase
-        .from('lessons')
-        .select('student_id, end_time, status, cost')
-        .lt('end_time', now.toISOString())
-        .neq('status', 'cancelled')
-
-      // Compute derived balances per student:
-      // balance = sum(deposits+refunds) - sum(past lesson costs)
-      const creditsByStudent: Record<string, { type: any; amount: any }[]> = {}
-      for (const tx of transactionsData || []) {
-        if (tx.type !== 'deposit' && tx.type !== 'refund') continue
-        const sid = tx.student_id
-        if (!creditsByStudent[sid]) creditsByStudent[sid] = []
-        creditsByStudent[sid].push({ type: tx.type, amount: tx.amount })
-      }
-
-      const lessonsByStudent: Record<string, { status: any; end_time: any; cost: any }[]> = {}
-      for (const l of pastLessons || []) {
-        const sid = l.student_id
-        if (!lessonsByStudent[sid]) lessonsByStudent[sid] = []
-        lessonsByStudent[sid].push({ status: l.status, end_time: l.end_time, cost: l.cost })
-      }
-
-      const balances: Record<string, number> = {}
-      for (const s of studentsData || []) {
-        balances[s.id] = calculateDerivedBalance({
-          credits: creditsByStudent[s.id] || [],
-          lessons: lessonsByStudent[s.id] || [],
-          now,
-        })
-      }
-      setBalancesByStudent(balances)
-
-      setLoading(false)
+    if (studentsData) {
+      setStudents(studentsData)
     }
 
+    // Fetch transactions for display (also used for credits)
+    const { data: transactionsData } = await supabase
+      .from('transactions')
+      .select('*, student:profiles(*)')
+      .order('created_at', { ascending: false })
+      .limit(500)
+
+    if (transactionsData) {
+      setTransactions(transactionsData)
+    }
+
+    // Fetch all lessons that have ended (used for debits)
+    const { data: pastLessons } = await supabase
+      .from('lessons')
+      .select('student_id, end_time, status, cost')
+      .lt('end_time', now.toISOString())
+      .neq('status', 'cancelled')
+
+    // Compute derived balances per student:
+    // balance = sum(deposits+refunds) - sum(past lesson costs)
+    const creditsByStudent: Record<string, { type: any; amount: any }[]> = {}
+    for (const tx of transactionsData || []) {
+      if (tx.type !== 'deposit' && tx.type !== 'refund') continue
+      const sid = tx.student_id
+      if (!creditsByStudent[sid]) creditsByStudent[sid] = []
+      creditsByStudent[sid].push({ type: tx.type, amount: tx.amount })
+    }
+
+    const lessonsByStudent: Record<string, { status: any; end_time: any; cost: any }[]> = {}
+    for (const l of pastLessons || []) {
+      const sid = l.student_id
+      if (!lessonsByStudent[sid]) lessonsByStudent[sid] = []
+      lessonsByStudent[sid].push({ status: l.status, end_time: l.end_time, cost: l.cost })
+    }
+
+    const balances: Record<string, number> = {}
+    for (const s of studentsData || []) {
+      balances[s.id] = calculateDerivedBalance({
+        credits: creditsByStudent[s.id] || [],
+        lessons: lessonsByStudent[s.id] || [],
+        now,
+      })
+    }
+    setBalancesByStudent(balances)
+
+    setLoading(false)
+  }
+
+  useEffect(() => {
     fetchData()
   }, [supabase])
+
+  const handleAddManualPayment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!manualPaymentData.studentId || !manualPaymentData.amount) {
+      toast.error('Please select a student and enter an amount')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const amount = parseFloat(manualPaymentData.amount)
+      if (isNaN(amount) || amount <= 0) {
+        toast.error('Please enter a valid amount')
+        return
+      }
+
+      const description = manualPaymentData.description.trim() || `Cash payment of ${formatCurrency(amount)}`
+
+      // Create the transaction
+      const { error } = await supabase.from('transactions').insert({
+        student_id: manualPaymentData.studentId,
+        type: 'deposit',
+        amount,
+        description,
+      })
+
+      if (error) throw error
+
+      toast.success('Payment recorded successfully')
+      setIsManualPaymentOpen(false)
+      setManualPaymentData({ studentId: '', amount: '', description: '' })
+      
+      // Refresh data
+      setLoading(true)
+      await fetchData()
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to record payment')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const filteredStudents = students.filter(
     (s) =>
@@ -138,18 +195,26 @@ export default function AdminPaymentsPage() {
     <DashboardLayout role="admin">
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <Link
-            href="/admin/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-2 transition-colors"
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <Link
+              href="/admin/dashboard"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-2 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Payments</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              View balances and payment history
+            </p>
+          </div>
+          <Button
+            onClick={() => setIsManualPaymentOpen(true)}
+            leftIcon={<Banknote className="w-5 h-5" />}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Payments</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            View balances and payment history
-          </p>
+            Record Payment
+          </Button>
         </div>
 
         {/* Stats */}
@@ -337,7 +402,78 @@ export default function AdminPaymentsPage() {
           </div>
         </div>
       </div>
+
+      {/* Manual Payment Modal */}
+      <Modal
+        isOpen={isManualPaymentOpen}
+        onClose={() => setIsManualPaymentOpen(false)}
+        title="Record Cash Payment"
+        size="md"
+      >
+        <form onSubmit={handleAddManualPayment} className="space-y-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Record a cash or bank transfer payment from a student. This will appear as a regular deposit in their account.
+          </p>
+
+          <Select
+            label="Student"
+            value={manualPaymentData.studentId}
+            onChange={(e) =>
+              setManualPaymentData({ ...manualPaymentData, studentId: e.target.value })
+            }
+            options={[
+              { value: '', label: 'Select a student...' },
+              ...students.map((s) => ({
+                value: s.id,
+                label: `${s.student_name} (${s.parent_name})`,
+              })),
+            ]}
+            required
+          />
+
+          <Input
+            label="Amount (£)"
+            type="number"
+            min="1"
+            step="0.01"
+            placeholder="50.00"
+            value={manualPaymentData.amount}
+            onChange={(e) =>
+              setManualPaymentData({ ...manualPaymentData, amount: e.target.value })
+            }
+            leftIcon={<PoundSterling className="w-4 h-4" />}
+            required
+          />
+
+          <Input
+            label="Description (optional)"
+            placeholder="Cash payment, bank transfer, etc."
+            value={manualPaymentData.description}
+            onChange={(e) =>
+              setManualPaymentData({ ...manualPaymentData, description: e.target.value })
+            }
+          />
+
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex-1"
+              onClick={() => setIsManualPaymentOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1"
+              isLoading={isSubmitting}
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
+              Record Payment
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </DashboardLayout>
   )
 }
-

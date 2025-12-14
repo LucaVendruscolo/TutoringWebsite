@@ -85,15 +85,19 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          // Mobile: drawer (not full width). Desktop: fixed-width sidebar.
-          'fixed top-0 left-0 z-50 h-full w-[78vw] max-w-[280px] md:w-[260px]',
-          'bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-100 dark:border-gray-800 shadow-soft-lg rounded-r-3xl md:rounded-none',
+          // Mobile: drawer (not full width). Desktop: fixed-width sidebar with margin.
+          'fixed z-50 h-[calc(100%-1rem)] w-[78vw] max-w-[280px] md:w-[240px]',
+          'top-2 left-2 md:top-3 md:left-3',
+          'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl',
+          'border border-gray-200/50 dark:border-gray-700/50',
+          'shadow-xl shadow-gray-900/5 dark:shadow-black/20',
+          'rounded-2xl',
           'transition-transform duration-300 ease-out',
-          isOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none',
-          'md:translate-x-0 md:relative md:flex-shrink-0 md:pointer-events-auto'
+          isOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)] pointer-events-none',
+          'md:translate-x-0 md:relative md:flex-shrink-0 md:pointer-events-auto md:h-[calc(100vh-1.5rem)]'
         )}
       >
-        <div className="flex flex-col h-full p-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-col h-full p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
           {/* Logo */}
           <div className="flex items-center justify-between mb-8 px-2">
             <Link href={role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>

@@ -265,9 +265,6 @@ export default function StudentDashboard() {
             variant="primary"
           />
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          Balance updates when lessons end; lesson status may take a bit longer to flip to “completed”.
-        </p>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
