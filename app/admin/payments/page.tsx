@@ -1,18 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   Search,
   PoundSterling,
   TrendingUp,
-  Calendar,
   ArrowDownRight,
   ArrowLeft,
   Plus,
   Banknote,
   Edit2,
   Trash2,
+  FileText,
+  Printer,
+  Download,
 } from 'lucide-react'
 import Link from 'next/link'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -28,8 +30,16 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { calculateDerivedBalance } from '@/lib/balance'
 import type { Profile, Transaction } from '@/lib/types'
-import { subYears } from 'date-fns'
+import { subYears, format, addDays } from 'date-fns'
 import toast from 'react-hot-toast'
+
+// Bank details for invoice
+const BANK_DETAILS = {
+  accountName: 'Luca Vendruscolo',
+  bank: 'Santander',
+  sortCode: '09-01-29',
+  accountNumber: '23843468',
+}
 
 export default function AdminPaymentsPage() {
   const [students, setStudents] = useState<Profile[]>([])
@@ -48,6 +58,18 @@ export default function AdminPaymentsPage() {
     description: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Invoice modal state
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false)
+  const [invoiceStudent, setInvoiceStudent] = useState<Profile | null>(null)
+  const [invoiceData, setInvoiceData] = useState({
+    amount: '',
+    description: 'Tutoring Services',
+    dueDate: format(addDays(new Date(), 14), 'yyyy-MM-dd'),
+    invoiceNumber: '',
+  })
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false)
+  const invoiceRef = useRef<HTMLDivElement>(null)
   
   const supabase = createClient()
 
@@ -133,6 +155,21 @@ export default function AdminPaymentsPage() {
     setIsPaymentModalOpen(true)
   }
 
+  const openInvoiceModal = (student: Profile) => {
+    const balance = balancesByStudent[student.id] ?? 0
+    const amountOwed = balance < 0 ? Math.abs(balance) : 0
+    
+    setInvoiceStudent(student)
+    setInvoiceData({
+      amount: amountOwed > 0 ? amountOwed.toFixed(2) : '',
+      description: 'Tutoring Services',
+      dueDate: format(addDays(new Date(), 14), 'yyyy-MM-dd'),
+      invoiceNumber: `INV-${format(new Date(), 'yyyyMMdd')}-${student.student_name.substring(0, 3).toUpperCase()}`,
+    })
+    setShowInvoicePreview(false)
+    setIsInvoiceModalOpen(true)
+  }
+
   const handleSubmitPayment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!paymentData.studentId || !paymentData.amount) {
@@ -211,6 +248,73 @@ export default function AdminPaymentsPage() {
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete payment')
     }
+  }
+
+  const handlePrintInvoice = () => {
+    const printWindow = window.open('', '_blank')
+    if (!printWindow || !invoiceRef.current) return
+
+    const invoiceHtml = invoiceRef.current.innerHTML
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Invoice - ${invoiceData.invoiceNumber}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              padding: 40px;
+              color: #1d1d1f;
+              line-height: 1.5;
+            }
+            .invoice-container { max-width: 800px; margin: 0 auto; }
+            .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #0071e3; }
+            .invoice-title { font-size: 32px; font-weight: 700; color: #0071e3; }
+            .invoice-number { font-size: 14px; color: #636366; margin-top: 4px; }
+            .invoice-date { text-align: right; }
+            .invoice-date p { font-size: 14px; color: #636366; }
+            .invoice-date strong { color: #1d1d1f; }
+            .parties { display: flex; justify-content: space-between; margin-bottom: 40px; }
+            .party { flex: 1; }
+            .party-title { font-size: 12px; font-weight: 600; color: #636366; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+            .party-name { font-size: 18px; font-weight: 600; color: #1d1d1f; margin-bottom: 4px; }
+            .party-detail { font-size: 14px; color: #636366; }
+            .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            .invoice-table th { text-align: left; padding: 12px 16px; background: #f5f5f7; font-size: 12px; font-weight: 600; color: #636366; text-transform: uppercase; letter-spacing: 0.5px; }
+            .invoice-table td { padding: 16px; border-bottom: 1px solid #e8e8ed; font-size: 14px; }
+            .invoice-table .amount { text-align: right; font-weight: 600; }
+            .invoice-total { display: flex; justify-content: flex-end; margin-bottom: 40px; }
+            .total-box { background: #f5f5f7; padding: 20px 30px; border-radius: 12px; min-width: 250px; }
+            .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+            .total-row.grand { font-size: 20px; font-weight: 700; color: #0071e3; border-top: 2px solid #d2d2d7; padding-top: 12px; margin-top: 8px; }
+            .bank-details { background: #f0f9ff; border: 1px solid #0071e3; border-radius: 12px; padding: 24px; margin-bottom: 30px; }
+            .bank-title { font-size: 14px; font-weight: 600; color: #0071e3; margin-bottom: 16px; }
+            .bank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .bank-item { }
+            .bank-label { font-size: 12px; color: #636366; }
+            .bank-value { font-size: 14px; font-weight: 600; color: #1d1d1f; }
+            .invoice-footer { text-align: center; padding-top: 20px; border-top: 1px solid #e8e8ed; }
+            .footer-text { font-size: 12px; color: #636366; }
+            @media print {
+              body { padding: 20px; }
+              .no-print { display: none !important; }
+            }
+          </style>
+        </head>
+        <body>
+          ${invoiceHtml}
+        </body>
+      </html>
+    `)
+    
+    printWindow.document.close()
+    printWindow.focus()
+    
+    setTimeout(() => {
+      printWindow.print()
+    }, 250)
   }
 
   const filteredStudents = students.filter(
@@ -313,26 +417,28 @@ export default function AdminPaymentsPage() {
                 </div>
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {filteredStudents.map((student) => (
-                    <button
+                    <div
                       key={student.id}
-                      onClick={() =>
-                        setSelectedStudent(
-                          selectedStudent === student.id ? null : student.id
-                        )
-                      }
-                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
+                      className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
                         selectedStudent === student.id
                           ? 'bg-primary-100 dark:bg-primary-500/20'
                           : 'hover:bg-gray-50 dark:hover:bg-gray-900/60'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <button
+                        onClick={() =>
+                          setSelectedStudent(
+                            selectedStudent === student.id ? null : student.id
+                          )
+                        }
+                        className="flex items-center gap-3 flex-1 text-left"
+                      >
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-100 to-accent-100 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-bold text-primary-600">
                             {student.student_name.charAt(0)}
                           </span>
                         </div>
-                        <div className="text-left min-w-0">
+                        <div className="min-w-0">
                           <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
                             {student.student_name}
                           </p>
@@ -340,19 +446,32 @@ export default function AdminPaymentsPage() {
                             {student.parent_name}
                           </p>
                         </div>
+                      </button>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`font-semibold text-sm flex-shrink-0 ${
+                            (balancesByStudent[student.id] ?? 0) < 0
+                              ? 'text-coral-600'
+                              : (balancesByStudent[student.id] ?? 0) > 0
+                              ? 'text-mint-600'
+                              : 'text-gray-500'
+                          }`}
+                        >
+                          {formatCurrency(balancesByStudent[student.id] ?? 0)}
+                        </span>
+                        {/* Invoice button - only show on desktop */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openInvoiceModal(student)
+                          }}
+                          className="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
+                          title="Create Invoice"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
                       </div>
-                      <span
-                        className={`font-semibold text-sm flex-shrink-0 ${
-                          (balancesByStudent[student.id] ?? 0) < 0
-                            ? 'text-coral-600'
-                            : (balancesByStudent[student.id] ?? 0) > 0
-                            ? 'text-mint-600'
-                            : 'text-gray-500'
-                        }`}
-                      >
-                        {formatCurrency(balancesByStudent[student.id] ?? 0)}
-                      </span>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </CardContent>
@@ -368,14 +487,29 @@ export default function AdminPaymentsPage() {
                     ? `${students.find((s) => s.id === selectedStudent)?.student_name}'s Transactions`
                     : 'Recent Transactions'}
                 </CardTitle>
-                {selectedStudent && (
-                  <button
-                    onClick={() => setSelectedStudent(null)}
-                    className="text-sm text-primary-600 hover:text-primary-700"
-                  >
-                    View all
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {selectedStudent && (
+                    <>
+                      <button
+                        onClick={() => {
+                          const student = students.find((s) => s.id === selectedStudent)
+                          if (student) openInvoiceModal(student)
+                        }}
+                        className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Invoice
+                      </button>
+                      <span className="text-gray-300 dark:text-gray-700">|</span>
+                      <button
+                        onClick={() => setSelectedStudent(null)}
+                        className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                      >
+                        View all
+                      </button>
+                    </>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {filteredTransactions.length === 0 ? (
@@ -554,6 +688,205 @@ export default function AdminPaymentsPage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Invoice Modal */}
+      <Modal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => {
+          setIsInvoiceModalOpen(false)
+          setShowInvoicePreview(false)
+          setInvoiceStudent(null)
+        }}
+        title={showInvoicePreview ? 'Invoice Preview' : 'Create Invoice'}
+        size="xl"
+      >
+        {!showInvoicePreview ? (
+          <div className="space-y-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Create an invoice for {invoiceStudent?.parent_name || invoiceStudent?.student_name}
+            </p>
+
+            <Input
+              label="Invoice Number"
+              value={invoiceData.invoiceNumber}
+              onChange={(e) => setInvoiceData({ ...invoiceData, invoiceNumber: e.target.value })}
+              placeholder="INV-001"
+            />
+
+            <Input
+              label="Amount (£)"
+              type="number"
+              min="0"
+              step="0.01"
+              value={invoiceData.amount}
+              onChange={(e) => setInvoiceData({ ...invoiceData, amount: e.target.value })}
+              leftIcon={<PoundSterling className="w-4 h-4" />}
+              required
+            />
+
+            <Input
+              label="Description"
+              value={invoiceData.description}
+              onChange={(e) => setInvoiceData({ ...invoiceData, description: e.target.value })}
+              placeholder="Tutoring Services"
+            />
+
+            <Input
+              label="Due Date"
+              type="date"
+              value={invoiceData.dueDate}
+              onChange={(e) => setInvoiceData({ ...invoiceData, dueDate: e.target.value })}
+            />
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1"
+                onClick={() => {
+                  setIsInvoiceModalOpen(false)
+                  setInvoiceStudent(null)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className="flex-1"
+                onClick={() => setShowInvoicePreview(true)}
+                leftIcon={<FileText className="w-4 h-4" />}
+                disabled={!invoiceData.amount || parseFloat(invoiceData.amount) <= 0}
+              >
+                Preview Invoice
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Invoice Preview */}
+            <div 
+              ref={invoiceRef}
+              className="bg-white rounded-xl p-6 sm:p-8 border border-gray-200"
+              style={{ colorScheme: 'light' }}
+            >
+              <div className="invoice-container">
+                {/* Header */}
+                <div className="invoice-header flex flex-col sm:flex-row justify-between items-start gap-4 mb-8 pb-4 border-b-2 border-primary-500">
+                  <div>
+                    <h1 className="invoice-title text-2xl sm:text-3xl font-bold text-primary-500">INVOICE</h1>
+                    <p className="invoice-number text-sm text-gray-500 mt-1">{invoiceData.invoiceNumber}</p>
+                  </div>
+                  <div className="invoice-date text-left sm:text-right">
+                    <p className="text-sm text-gray-500">
+                      <strong className="text-gray-900">Date:</strong> {format(new Date(), 'dd MMMM yyyy')}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      <strong className="text-gray-900">Due:</strong> {format(new Date(invoiceData.dueDate), 'dd MMMM yyyy')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Parties */}
+                <div className="parties flex flex-col sm:flex-row justify-between gap-6 mb-8">
+                  <div className="party">
+                    <p className="party-title text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">From</p>
+                    <p className="party-name text-lg font-semibold text-gray-900">Luca Vendruscolo</p>
+                    <p className="party-detail text-sm text-gray-500">Tutoring Services</p>
+                  </div>
+                  <div className="party">
+                    <p className="party-title text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Bill To</p>
+                    <p className="party-name text-lg font-semibold text-gray-900">{invoiceStudent?.parent_name || invoiceStudent?.student_name}</p>
+                    <p className="party-detail text-sm text-gray-500">Student: {invoiceStudent?.student_name}</p>
+                    <p className="party-detail text-sm text-gray-500">{invoiceStudent?.email}</p>
+                  </div>
+                </div>
+
+                {/* Table */}
+                <table className="invoice-table w-full mb-6">
+                  <thead>
+                    <tr>
+                      <th className="text-left p-3 bg-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                      <th className="text-right p-3 bg-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="p-4 border-b border-gray-200 text-sm text-gray-900">{invoiceData.description}</td>
+                      <td className="p-4 border-b border-gray-200 text-sm text-gray-900 text-right font-semibold">
+                        {formatCurrency(parseFloat(invoiceData.amount) || 0)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Total */}
+                <div className="invoice-total flex justify-end mb-8">
+                  <div className="total-box bg-gray-100 p-5 rounded-xl min-w-[200px] sm:min-w-[250px]">
+                    <div className="total-row flex justify-between mb-2">
+                      <span className="text-sm text-gray-500">Subtotal</span>
+                      <span className="text-sm text-gray-900">{formatCurrency(parseFloat(invoiceData.amount) || 0)}</span>
+                    </div>
+                    <div className="total-row grand flex justify-between text-lg font-bold text-primary-500 border-t-2 border-gray-300 pt-3 mt-2">
+                      <span>Total Due</span>
+                      <span>{formatCurrency(parseFloat(invoiceData.amount) || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bank Details */}
+                <div className="bank-details bg-blue-50 border border-primary-500 rounded-xl p-5 mb-6">
+                  <p className="bank-title text-sm font-semibold text-primary-500 mb-4">Payment Details</p>
+                  <div className="bank-grid grid grid-cols-2 gap-3">
+                    <div className="bank-item">
+                      <p className="bank-label text-xs text-gray-500">Account Name</p>
+                      <p className="bank-value text-sm font-semibold text-gray-900">{BANK_DETAILS.accountName}</p>
+                    </div>
+                    <div className="bank-item">
+                      <p className="bank-label text-xs text-gray-500">Bank</p>
+                      <p className="bank-value text-sm font-semibold text-gray-900">{BANK_DETAILS.bank}</p>
+                    </div>
+                    <div className="bank-item">
+                      <p className="bank-label text-xs text-gray-500">Sort Code</p>
+                      <p className="bank-value text-sm font-semibold text-gray-900">{BANK_DETAILS.sortCode}</p>
+                    </div>
+                    <div className="bank-item">
+                      <p className="bank-label text-xs text-gray-500">Account Number</p>
+                      <p className="bank-value text-sm font-semibold text-gray-900">{BANK_DETAILS.accountNumber}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="invoice-footer text-center pt-4 border-t border-gray-200">
+                  <p className="footer-text text-xs text-gray-500">
+                    Thank you for your business. Please include the invoice number as the payment reference.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setShowInvoicePreview(false)}
+              >
+                Back to Edit
+              </Button>
+              <Button
+                type="button"
+                className="flex-1"
+                onClick={handlePrintInvoice}
+                leftIcon={<Printer className="w-4 h-4" />}
+              >
+                Print / Save PDF
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </DashboardLayout>
   )
