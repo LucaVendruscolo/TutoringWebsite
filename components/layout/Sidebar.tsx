@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -46,9 +46,38 @@ const studentLinks = [
 
 export function Sidebar({ role }: SidebarProps) {
   const [isMoreOpen, setIsMoreOpen] = useState(false)
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+
+  // Hide bottom nav when keyboard is open (input focused)
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+        setIsKeyboardOpen(true)
+      }
+    }
+
+    const handleFocusOut = (e: FocusEvent) => {
+      // Small delay to prevent flickering when moving between inputs
+      setTimeout(() => {
+        const activeEl = document.activeElement
+        if (activeEl?.tagName !== 'INPUT' && activeEl?.tagName !== 'TEXTAREA' && activeEl?.tagName !== 'SELECT') {
+          setIsKeyboardOpen(false)
+        }
+      }, 100)
+    }
+
+    document.addEventListener('focusin', handleFocusIn)
+    document.addEventListener('focusout', handleFocusOut)
+
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn)
+      document.removeEventListener('focusout', handleFocusOut)
+    }
+  }, [])
 
   const links = role === 'admin' ? adminLinks : studentLinks
   const bottomNavLinks = links.filter((l) => l.showInBottomNav)
@@ -128,12 +157,15 @@ export function Sidebar({ role }: SidebarProps) {
       </aside>
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
+      {/* Hidden when keyboard is open to prevent layout issues */}
       <nav
         className={cn(
           'lg:hidden fixed bottom-0 left-0 right-0 z-50',
           'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl',
           'border-t border-gray-200/50 dark:border-gray-700/50',
-          'pb-[env(safe-area-inset-bottom)]'
+          'pb-[env(safe-area-inset-bottom)]',
+          'transition-transform duration-200',
+          isKeyboardOpen && 'translate-y-full'
         )}
       >
         <div className="flex items-center justify-around px-2 h-16">

@@ -240,7 +240,7 @@ export default function StudentBalancePage() {
               {/* Custom amount */}
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Or enter a custom amount</p>
-                <div className="flex gap-4 max-w-md">
+                <div className="flex gap-3 sm:gap-4 max-w-md">
                   <Input
                     type="number"
                     min="5"
@@ -248,12 +248,14 @@ export default function StudentBalancePage() {
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
                     leftIcon={<PoundSterling className="w-5 h-5" />}
-                    placeholder="Enter amount (min £5)"
+                    placeholder="Amount"
+                    className="flex-1"
                   />
                   <Button
                     onClick={handleDeposit}
                     isLoading={isProcessing}
                     leftIcon={<CreditCard className="w-5 h-5" />}
+                    className="whitespace-nowrap"
                   >
                     Pay with Card
                   </Button>
