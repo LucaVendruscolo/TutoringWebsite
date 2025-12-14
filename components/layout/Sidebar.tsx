@@ -11,12 +11,12 @@ import {
   CreditCard,
   Settings,
   LogOut,
-  Menu,
-  X,
   GraduationCap,
   Clock,
   Wallet,
   History,
+  MoreHorizontal,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -28,31 +28,34 @@ interface SidebarProps {
 }
 
 const adminLinks = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/students', label: 'Students', icon: Users },
-  { href: '/admin/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/admin/payments', label: 'Payments', icon: CreditCard },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, showInBottomNav: true },
+  { href: '/admin/students', label: 'Students', icon: Users, showInBottomNav: true },
+  { href: '/admin/calendar', label: 'Calendar', icon: Calendar, showInBottomNav: true },
+  { href: '/admin/payments', label: 'Payments', icon: CreditCard, showInBottomNav: true },
+  { href: '/admin/settings', label: 'Settings', icon: Settings, showInBottomNav: false },
 ]
 
 const studentLinks = [
-  { href: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/student/lessons', label: 'My Lessons', icon: Clock },
-  { href: '/student/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/student/balance', label: 'Balance', icon: Wallet },
-  { href: '/student/history', label: 'History', icon: History },
-  { href: '/student/settings', label: 'Settings', icon: Settings },
+  { href: '/student/dashboard', label: 'Home', icon: LayoutDashboard, showInBottomNav: true },
+  { href: '/student/lessons', label: 'Lessons', icon: Clock, showInBottomNav: true },
+  { href: '/student/calendar', label: 'Calendar', icon: Calendar, showInBottomNav: true },
+  { href: '/student/balance', label: 'Balance', icon: Wallet, showInBottomNav: true },
+  { href: '/student/history', label: 'History', icon: History, showInBottomNav: false },
+  { href: '/student/settings', label: 'Settings', icon: Settings, showInBottomNav: false },
 ]
 
 export function Sidebar({ role }: SidebarProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isMoreOpen, setIsMoreOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
 
   const links = role === 'admin' ? adminLinks : studentLinks
+  const bottomNavLinks = links.filter((l) => l.showInBottomNav)
+  const moreLinks = links.filter((l) => !l.showInBottomNav)
 
   const handleLogout = async () => {
+    setIsMoreOpen(false)
     await supabase.auth.signOut()
     toast.success('Logged out successfully')
     router.push('/login')
@@ -60,46 +63,21 @@ export function Sidebar({ role }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] z-40 p-2.5 rounded-full bg-white dark:bg-gray-900 shadow-soft md:hidden"
-      >
-        <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
-      </button>
-
-      {/* Mobile overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Sidebar */}
+      {/* ========== DESKTOP SIDEBAR ========== */}
       <aside
         className={cn(
-          // Mobile: drawer (not full width). Desktop: fixed-width sidebar with margin.
-          'fixed z-50 h-[calc(100%-1rem)] w-[78vw] max-w-[280px] md:w-[240px]',
-          'top-2 left-2 md:top-3 md:left-3',
+          'hidden md:flex',
+          'fixed z-50 h-[calc(100vh-1.5rem)] w-[240px]',
+          'top-3 left-3',
           'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl',
           'border border-gray-200/50 dark:border-gray-700/50',
           'shadow-xl shadow-gray-900/5 dark:shadow-black/20',
-          'rounded-2xl',
-          'transition-transform duration-300 ease-out',
-          isOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)] pointer-events-none',
-          'md:translate-x-0 md:relative md:flex-shrink-0 md:pointer-events-auto md:h-[calc(100vh-1.5rem)]'
+          'rounded-2xl'
         )}
       >
-        <div className="flex flex-col h-full p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-col h-full p-4 w-full">
           {/* Logo */}
-          <div className="flex items-center justify-between mb-8 px-2">
+          <div className="flex items-center gap-3 px-2 mb-8">
             <Link href={role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary-500">
@@ -110,12 +88,6 @@ export function Sidebar({ role }: SidebarProps) {
                 </span>
               </div>
             </Link>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-            </button>
           </div>
 
           {/* Navigation */}
@@ -129,7 +101,6 @@ export function Sidebar({ role }: SidebarProps) {
                   <motion.div
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.1 }}
-                    onClick={() => setIsOpen(false)}
                     className={cn(
                       'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                       isActive
@@ -155,6 +126,161 @@ export function Sidebar({ role }: SidebarProps) {
           </button>
         </div>
       </aside>
+
+      {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
+      <nav
+        className={cn(
+          'md:hidden fixed bottom-0 left-0 right-0 z-50',
+          'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl',
+          'border-t border-gray-200/50 dark:border-gray-700/50',
+          'pb-[env(safe-area-inset-bottom)]'
+        )}
+      >
+        <div className="flex items-center justify-around px-2 h-16">
+          {bottomNavLinks.map((link) => {
+            const isActive = pathname === link.href
+            const Icon = link.icon
+
+            return (
+              <Link key={link.href} href={link.href} className="flex-1">
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  className={cn(
+                    'flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors',
+                    isActive
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-gray-500 dark:text-gray-400'
+                  )}
+                >
+                  <Icon className={cn('w-6 h-6', isActive && 'stroke-[2.5px]')} />
+                  <span className={cn('text-[10px] mt-1 font-medium', isActive && 'font-semibold')}>
+                    {link.label}
+                  </span>
+                </motion.div>
+              </Link>
+            )
+          })}
+
+          {/* More button */}
+          <button
+            onClick={() => setIsMoreOpen(true)}
+            className="flex-1"
+          >
+            <motion.div
+              whileTap={{ scale: 0.9 }}
+              className={cn(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors',
+                isMoreOpen
+                  ? 'text-primary-600 dark:text-primary-400'
+                  : 'text-gray-500 dark:text-gray-400'
+              )}
+            >
+              <MoreHorizontal className="w-6 h-6" />
+              <span className="text-[10px] mt-1 font-medium">More</span>
+            </motion.div>
+          </button>
+        </div>
+      </nav>
+
+      {/* ========== MOBILE "MORE" BOTTOM SHEET ========== */}
+      <AnimatePresence>
+        {isMoreOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsMoreOpen(false)}
+              className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+            />
+
+            {/* Bottom Sheet */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+              className={cn(
+                'md:hidden fixed bottom-0 left-0 right-0 z-[70]',
+                'bg-white dark:bg-gray-900',
+                'rounded-t-3xl',
+                'pb-[env(safe-area-inset-bottom)]',
+                'shadow-2xl'
+              )}
+            >
+              {/* Handle bar */}
+              <div className="flex justify-center pt-3 pb-2">
+                <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
+              </div>
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  More Options
+                </h3>
+                <button
+                  onClick={() => setIsMoreOpen(false)}
+                  className="p-2 -mr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Links */}
+              <div className="px-4 pb-4 space-y-1">
+                {moreLinks.map((link) => {
+                  const isActive = pathname === link.href
+                  const Icon = link.icon
+
+                  return (
+                    <Link key={link.href} href={link.href}>
+                      <motion.div
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsMoreOpen(false)}
+                        className={cn(
+                          'flex items-center gap-4 px-4 py-4 rounded-2xl transition-all',
+                          isActive
+                            ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'p-2.5 rounded-xl',
+                            isActive
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                          )}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <span className="font-medium">{link.label}</span>
+                      </motion.div>
+                    </Link>
+                  )
+                })}
+
+                {/* Logout */}
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-coral-600 dark:text-coral-400 hover:bg-coral-50 dark:hover:bg-coral-500/10 transition-all"
+                >
+                  <div className="p-2.5 rounded-xl bg-coral-100 dark:bg-coral-500/10">
+                    <LogOut className="w-5 h-5" />
+                  </div>
+                  <span className="font-medium">Logout</span>
+                </motion.button>
+              </div>
+
+              {/* Extra padding for safe area */}
+              <div className="h-4" />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   )
 }
