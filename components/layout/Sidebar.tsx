@@ -173,17 +173,22 @@ export function Sidebar({ role }: SidebarProps) {
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
       {/* Hidden when keyboard is open to prevent layout issues */}
-      <nav
+      {/* Extra height below to fill gap when iOS Safari browser chrome hides */}
+      <div
         className={cn(
-          'lg:hidden fixed bottom-0 left-0 right-0 z-50',
-          'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl',
-          'border-t border-gray-200/50 dark:border-gray-700/50',
-          'pb-[env(safe-area-inset-bottom)]',
+          'lg:hidden fixed left-0 right-0 bottom-0 z-50',
           'transition-transform duration-200',
           isKeyboardOpen && 'translate-y-full'
         )}
       >
-        <div className="flex items-center justify-around px-2 h-16">
+        {/* Actual nav content */}
+        <nav
+          className={cn(
+            'bg-white dark:bg-gray-900',
+            'border-t border-gray-200/50 dark:border-gray-700/50'
+          )}
+        >
+          <div className="flex items-center justify-around px-2 h-16">
           {bottomNavLinks.map((link) => {
             const isActive = pathname === link.href
             const Icon = link.icon
@@ -226,8 +231,11 @@ export function Sidebar({ role }: SidebarProps) {
               <span className="text-[10px] mt-1 font-medium">More</span>
             </motion.div>
           </button>
-        </div>
-      </nav>
+          </div>
+        </nav>
+        {/* Extra background to fill gap when iOS Safari browser chrome hides */}
+        <div className="h-12 bg-white dark:bg-gray-900" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
+      </div>
 
       {/* ========== MOBILE "MORE" BOTTOM SHEET ========== */}
       <AnimatePresence>
