@@ -59,7 +59,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       {/* Mobile: add bottom padding for fixed nav */}
       {/* Desktop: add left margin to account for the fixed sidebar width (240px + 12px offset + 12px gap) */}
       <main className="min-h-[100dvh] overflow-x-hidden lg:ml-[264px]">
-        <div className="p-4 pb-24 lg:p-8 lg:pb-8">
+        <div className="p-4 pb-32 lg:p-8 lg:pb-8">
           {/* Password warning - positioned at bottom to avoid toast overlap */}
           <AnimatePresence>
             {showPasswordWarning && (
