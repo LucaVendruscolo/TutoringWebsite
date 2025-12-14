@@ -413,14 +413,14 @@ export default function StudentDashboard() {
             Select the dates you'll be on holiday. All lessons during this period will be cancelled.
           </p>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             <Input
               label="Start Date"
               type="date"
               value={holidayDates.start}
               onChange={(e) => setHolidayDates({ ...holidayDates, start: e.target.value })}
               required
-              className="text-sm py-1.5"
+              className="text-sm"
             />
             <Input
               label="End Date"
@@ -428,7 +428,7 @@ export default function StudentDashboard() {
               value={holidayDates.end}
               onChange={(e) => setHolidayDates({ ...holidayDates, end: e.target.value })}
               required
-              className="text-sm py-1.5"
+              className="text-sm"
             />
           </div>
 
