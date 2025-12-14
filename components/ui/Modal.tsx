@@ -66,7 +66,7 @@ export function Modal({
             }}
             style={{ willChange: 'transform, opacity' }}
             className={cn(
-              'relative w-full bg-white dark:bg-gray-900 rounded-2xl shadow-soft-xl p-6 border border-transparent dark:border-gray-800',
+              'relative w-full bg-white dark:bg-gray-900 rounded-2xl shadow-soft-xl p-4 sm:p-6 border border-transparent dark:border-gray-800 max-h-[90vh] overflow-y-auto',
               sizes[size]
             )}
           >
