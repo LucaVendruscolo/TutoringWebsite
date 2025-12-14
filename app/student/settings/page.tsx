@@ -157,13 +157,13 @@ export default function StudentSettingsPage() {
         <div>
           <Link
             href="/student/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 mb-2 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-300 mb-2 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Manage your account settings
           </p>
         </div>
@@ -186,12 +186,12 @@ export default function StudentSettingsPage() {
           <CardContent>
             <form onSubmit={handleUpdateProfile} className="space-y-6">
               <div>
-                <label className="text-sm font-medium text-gray-500">Email</label>
-                <div className="flex items-center gap-2 mt-1 p-3 bg-gray-50 rounded-xl">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-900">{profile?.email}</span>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
+                <div className="flex items-center gap-2 mt-1 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200/70 dark:border-gray-800">
+                  <Mail className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-gray-900 dark:text-gray-100">{profile?.email}</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Contact me to change your email</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Contact me to change your email</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,7 +223,7 @@ export default function StudentSettingsPage() {
                 }
                 options={TIMEZONES}
               />
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Lesson times will be displayed in your selected timezone.
               </p>
 

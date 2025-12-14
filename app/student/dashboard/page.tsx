@@ -232,23 +232,13 @@ export default function StudentDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Welcome, {profile?.student_name || 'Student'}! 👋
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Here's an overview of your tutoring sessions
           </p>
         </div>
-
-        {/* Low balance warning */}
-        {stats && stats.balance < 0 && (
-          <Alert variant="warning" title="Low Balance">
-            Your balance is {formatCurrency(stats.balance)}. Please add funds to continue with your lessons.
-            <Link href="/student/balance" className="ml-2 underline font-medium">
-              Add funds →
-            </Link>
-          </Alert>
-        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -275,7 +265,7 @@ export default function StudentDashboard() {
             variant="primary"
           />
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           Balance updates when lessons end; lesson status may take a bit longer to flip to “completed”.
         </p>
 
@@ -284,12 +274,12 @@ export default function StudentDashboard() {
           <Link href="/student/calendar">
             <Card hover className="cursor-pointer">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary-100">
-                  <Calendar className="w-6 h-6 text-primary-600" />
+                <div className="p-3 rounded-xl bg-primary-100 dark:bg-primary-500/10">
+                  <Calendar className="w-6 h-6 text-primary-600 dark:text-primary-200" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">View Calendar</h3>
-                  <p className="text-sm text-gray-500">See all your lessons</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">View Calendar</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">See all your lessons</p>
                 </div>
               </div>
             </Card>
@@ -298,12 +288,12 @@ export default function StudentDashboard() {
           <Link href="/student/balance">
             <Card hover className="cursor-pointer">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-mint-100">
-                  <Wallet className="w-6 h-6 text-mint-600" />
+                <div className="p-3 rounded-xl bg-mint-100 dark:bg-mint-500/10">
+                  <Wallet className="w-6 h-6 text-mint-600 dark:text-mint-200" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Add Funds</h3>
-                  <p className="text-sm text-gray-500">Top up your balance</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Add Funds</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Top up your balance</p>
                 </div>
               </div>
             </Card>
@@ -312,12 +302,12 @@ export default function StudentDashboard() {
           <Link href="/student/history">
             <Card hover className="cursor-pointer">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-accent-100">
-                  <TrendingUp className="w-6 h-6 text-accent-600" />
+                <div className="p-3 rounded-xl bg-accent-100 dark:bg-accent-500/10">
+                  <TrendingUp className="w-6 h-6 text-accent-600 dark:text-accent-200" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Payment History</h3>
-                  <p className="text-sm text-gray-500">View transactions</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Payment History</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">View transactions</p>
                 </div>
               </div>
             </Card>
@@ -326,7 +316,7 @@ export default function StudentDashboard() {
 
         {/* Lesson Management */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Lesson Management</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Lesson Management</h3>
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
@@ -339,7 +329,7 @@ export default function StudentDashboard() {
               variant="outline"
               onClick={() => setIsCancelAllModalOpen(true)}
               leftIcon={<XCircle className="w-4 h-4" />}
-              className="text-coral-600 border-coral-200 hover:bg-coral-50"
+              className="text-coral-600 border-coral-200 hover:bg-coral-50 dark:border-coral-500/30 dark:hover:bg-coral-500/10"
             >
               Cancel All Upcoming Lessons
             </Button>
@@ -348,29 +338,29 @@ export default function StudentDashboard() {
 
         {/* Contact Information */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Luca</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Contact Luca</h3>
           <div className="space-y-3">
             <a 
               href="mailto:lucavendruscolo3@gmail.com"
-              className="flex items-center gap-3 text-gray-600 hover:text-primary-500 transition-colors"
+              className="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-primary-600" />
+              <div className="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-primary-600 dark:text-primary-200" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Email</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Email</p>
                 <p className="text-sm">lucavendruscolo3@gmail.com</p>
               </div>
             </a>
             <a 
               href="tel:+447305880977"
-              className="flex items-center gap-3 text-gray-600 hover:text-primary-500 transition-colors"
+              className="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-300 transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-mint-50 flex items-center justify-center">
-                <Phone className="w-5 h-5 text-mint-600" />
+              <div className="w-10 h-10 rounded-lg bg-mint-50 dark:bg-mint-500/10 flex items-center justify-center">
+                <Phone className="w-5 h-5 text-mint-600 dark:text-mint-200" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Phone</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Phone</p>
                 <p className="text-sm">+44 07305 880977</p>
               </div>
             </a>
@@ -390,7 +380,7 @@ export default function StudentDashboard() {
             This will cancel ALL your upcoming lessons. This action cannot be undone.
           </Alert>
 
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             You have <strong>{stats?.upcomingLessons.length || 0}</strong> upcoming lessons that will be cancelled.
           </p>
 

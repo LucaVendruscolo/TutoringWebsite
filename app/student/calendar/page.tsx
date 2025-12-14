@@ -92,13 +92,13 @@ export default function StudentCalendarPage() {
         <div>
           <Link
             href="/student/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 mb-2 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-300 mb-2 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Calendar</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             View your scheduled lessons
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function StudentCalendarPage() {
           </CardHeader>
           <CardContent>
             {selectedDateLessons.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
                 No lessons on this day
               </p>
             ) : (
@@ -135,28 +135,28 @@ export default function StudentCalendarPage() {
                       onClick={() => openViewModal(lesson)}
                       className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
                         lesson.status === 'cancelled'
-                          ? 'bg-gray-50 border-gray-200'
+                          ? 'bg-gray-50 border-gray-200 dark:bg-gray-900/50 dark:border-gray-800'
                           : isPast
-                          ? 'bg-mint-50 border-mint-100'
-                          : 'bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100'
+                          ? 'bg-mint-50 border-mint-100 dark:bg-mint-500/10 dark:border-mint-500/20'
+                          : 'bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100 dark:from-primary-500/10 dark:to-accent-500/10 dark:border-gray-800'
                       }`}
                     >
                       <div className="flex items-center gap-4">
                         <div
                           className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                             lesson.status === 'cancelled'
-                              ? 'bg-gray-200'
+                              ? 'bg-gray-200 dark:bg-gray-800'
                               : isPast
-                              ? 'bg-mint-200'
-                              : 'bg-white shadow-sm'
+                              ? 'bg-mint-200 dark:bg-mint-500/20'
+                              : 'bg-white dark:bg-gray-900 shadow-sm'
                           }`}
                         >
                           {lesson.status === 'cancelled' ? (
-                            <X className="w-5 h-5 text-gray-400" />
+                            <X className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                           ) : (
                             <Clock
                               className={`w-5 h-5 ${
-                                isPast ? 'text-mint-600' : 'text-primary-600'
+                                isPast ? 'text-mint-600 dark:text-mint-200' : 'text-primary-600 dark:text-primary-200'
                               }`}
                             />
                           )}
@@ -166,12 +166,12 @@ export default function StudentCalendarPage() {
                             className={`font-medium ${
                               lesson.status === 'cancelled'
                                 ? 'text-gray-400 line-through'
-                                : 'text-gray-900'
+                                : 'text-gray-900 dark:text-gray-100'
                             }`}
                           >
                             Tutoring Session
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {formatTimeInTimezone(
                               lesson.start_time,
                               profile?.timezone || 'Europe/London'
@@ -229,11 +229,11 @@ export default function StudentCalendarPage() {
         {selectedLesson && (
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-gradient-to-r from-primary-50 to-accent-50">
-                <p className="text-lg font-semibold text-gray-900">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-500/10 dark:to-accent-500/10">
+                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {formatDate(selectedLesson.start_time, 'EEEE, MMMM d, yyyy')}
                 </p>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {formatTimeInTimezone(
                     selectedLesson.start_time,
                     profile?.timezone || 'Europe/London'
@@ -248,14 +248,14 @@ export default function StudentCalendarPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Duration</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Duration</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
                     {selectedLesson.duration_minutes} minutes
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Cost</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Cost</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
                     {formatCurrency(selectedLesson.cost)}
                   </p>
                 </div>
@@ -297,7 +297,7 @@ export default function StudentCalendarPage() {
                   </Link>
                 )}
                 {canCancelLesson(selectedLesson.end_time) && (
-                  <p className="text-sm text-center text-gray-500">
+                  <p className="text-sm text-center text-gray-500 dark:text-gray-400">
                     You can cancel this lesson up to 24 hours after it ends
                   </p>
                 )}

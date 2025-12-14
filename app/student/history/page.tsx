@@ -71,13 +71,13 @@ export default function StudentHistoryPage() {
           <div>
             <Link
               href="/student/dashboard"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 mb-2 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-300 mb-2 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Payment History</h1>
-            <p className="text-gray-500 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Payment History</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
               View all your transactions
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function StudentHistoryPage() {
           </CardHeader>
           <CardContent>
             {filteredTransactions.length === 0 ? (
-              <p className="text-gray-500 text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400 text-center py-12">
                 No transactions found
               </p>
             ) : (
@@ -115,16 +115,16 @@ export default function StudentHistoryPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.02 }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100"
+                    className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 dark:bg-gray-900/50 dark:border-gray-800"
                   >
                     <div className="flex items-center gap-4">
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                           transaction.type === 'deposit'
-                            ? 'bg-mint-100'
+                            ? 'bg-mint-100 dark:bg-mint-500/10'
                             : transaction.type === 'refund'
-                            ? 'bg-accent-100'
-                            : 'bg-coral-100'
+                            ? 'bg-accent-100 dark:bg-accent-500/10'
+                            : 'bg-coral-100 dark:bg-coral-500/10'
                         }`}
                       >
                         {transaction.type === 'deposit' ||
@@ -137,14 +137,14 @@ export default function StudentHistoryPage() {
                             }`}
                           />
                         ) : (
-                          <ArrowUpRight className="w-5 h-5 text-coral-600" />
+                          <ArrowUpRight className="w-5 h-5 text-coral-600 dark:text-coral-200" />
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
                           {transaction.description}
                         </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                           <Calendar className="w-3 h-3" />
                           {formatDate(transaction.created_at, 'MMM d, yyyy h:mm a')}
                         </div>
