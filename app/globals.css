@@ -22,19 +22,14 @@ html {
   text-rendering: optimizeLegibility;
   height: 100%;
   background: #fafafa;
-  /* Prevent overscroll/bounce effects */
-  overscroll-behavior: none;
 }
 
 body {
   font-family: var(--font-inter);
   background: #fafafa;
   min-height: 100%;
-  min-height: 100dvh;
   color: #1d1d1f;
   letter-spacing: -0.01em;
-  /* Prevent overscroll/bounce effects */
-  overscroll-behavior: none;
 }
 
 html.dark {
@@ -334,11 +329,6 @@ html.dark .bg-abstract::after {
 .stagger-item:nth-child(6) { animation-delay: 0.3s; }
 .stagger-item:nth-child(7) { animation-delay: 0.35s; }
 .stagger-item:nth-child(8) { animation-delay: 0.4s; }
-
-/* Mobile menu */
-.mobile-menu {
-  @apply fixed inset-0 z-50 bg-white/95 backdrop-blur-xl;
-}
 
 /* Responsive text */
 .text-responsive-sm {

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
@@ -52,25 +51,21 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   }
 
   return (
-    <div 
-      className="bg-[#fafafa] dark:bg-gray-950"
-      style={{ minHeight: '100dvh' }}
-    >
+    <div className="min-h-screen bg-[#fafafa] dark:bg-gray-950">
       <Sidebar role={role} />
       
       {/* Main content area */}
-      {/* Mobile: add bottom padding for fixed nav (nav height 64px + safe area) */}
       {/* Desktop: add left margin to account for the fixed sidebar width (240px + 12px offset + 12px gap) */}
-      <main className="lg:ml-[264px]">
-        <div className="p-4 pb-24 lg:p-8 lg:pb-8">
-          {/* Password warning - positioned at bottom to avoid toast overlap */}
+      <main className="ml-[264px]">
+        <div className="p-8">
+          {/* Password warning */}
           <AnimatePresence>
             {showPasswordWarning && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-24 lg:bottom-5 right-5 z-40 max-w-sm"
+                className="fixed bottom-5 right-5 z-40 max-w-sm"
               >
                 <Alert
                   variant="warning"
@@ -101,4 +96,3 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
     </div>
   )
 }
-
