@@ -157,7 +157,7 @@ export function Sidebar({ role }: SidebarProps) {
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
       {/* Hidden when keyboard is open to prevent layout issues */}
-      {/* Use sticky positioning within the viewport for better Chrome compatibility */}
+      {/* Uses --vv-bottom CSS variable set by visualViewport script for Chrome compatibility */}
       <nav
         className={cn(
           'lg:hidden fixed left-0 right-0 z-50',
@@ -167,7 +167,7 @@ export function Sidebar({ role }: SidebarProps) {
           isKeyboardOpen ? 'translate-y-full' : ''
         )}
         style={{ 
-          bottom: 0,
+          bottom: 'calc(var(--vv-bottom, 0px))',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)' 
         }}
       >

@@ -9,6 +9,24 @@ export const metadata: Metadata = {
   description: 'Book and manage your tutoring lessons with ease',
 }
 
+// Script to track visual viewport and set CSS variable for bottom nav positioning
+const visualViewportScript = `
+(function() {
+  function updateVV() {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var bottomOffset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    document.documentElement.style.setProperty('--vv-bottom', bottomOffset + 'px');
+  }
+  updateVV();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateVV);
+    window.visualViewport.addEventListener('scroll', updateVV);
+  }
+  window.addEventListener('resize', updateVV);
+})();
+`
+
 export default function RootLayout({
   children,
 }: {
@@ -16,8 +34,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </head>
       <body className="antialiased">
         <script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
+        <script dangerouslySetInnerHTML={{ __html: visualViewportScript }} />
         <ThemeProvider>
         <div className="bg-abstract" />
         {children}
