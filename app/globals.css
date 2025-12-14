@@ -20,21 +20,20 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Prevent pull-to-refresh and overscroll */
+  overscroll-behavior: none;
 }
 
 body {
   font-family: var(--font-inter);
   background: #fafafa;
+  min-height: 100vh;
   min-height: 100dvh;
-  min-height: -webkit-fill-available;
   color: #1d1d1f;
   letter-spacing: -0.01em;
-  /* Prevent overscroll on iOS */
-  overscroll-behavior-y: contain;
-}
-
-html {
-  height: -webkit-fill-available;
+  /* Prevent overscroll bounce */
+  overscroll-behavior: none;
+  position: relative;
 }
 
 html.dark body {

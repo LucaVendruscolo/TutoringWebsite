@@ -52,14 +52,14 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#fafafa] dark:bg-gray-950">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-gray-950">
       <Sidebar role={role} />
       
       {/* Main content area */}
-      {/* Mobile: add bottom padding for fixed nav */}
+      {/* Mobile: add bottom padding for fixed nav (nav height ~64px + safe area + buffer) */}
       {/* Desktop: add left margin to account for the fixed sidebar width (240px + 12px offset + 12px gap) */}
-      <main className="min-h-[100dvh] overflow-x-hidden lg:ml-[264px]">
-        <div className="p-4 pb-32 lg:p-8 lg:pb-8">
+      <main className="min-h-screen lg:ml-[264px]">
+        <div className="p-4 pb-28 lg:p-8 lg:pb-8">
           {/* Password warning - positioned at bottom to avoid toast overlap */}
           <AnimatePresence>
             {showPasswordWarning && (
