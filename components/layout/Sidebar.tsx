@@ -52,7 +52,23 @@ export function Sidebar({ role }: SidebarProps) {
   const supabase = createClient()
 
   // Hide bottom nav when keyboard is open (input focused)
+  // Uses visualViewport API for reliable iOS keyboard detection
   useEffect(() => {
+    // Use visualViewport API if available (more reliable on iOS)
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      const viewport = window.visualViewport
+      
+      const handleResize = () => {
+        // If viewport height is significantly less than window height, keyboard is open
+        const keyboardOpen = viewport.height < window.innerHeight * 0.75
+        setIsKeyboardOpen(keyboardOpen)
+      }
+
+      viewport.addEventListener('resize', handleResize)
+      return () => viewport.removeEventListener('resize', handleResize)
+    }
+
+    // Fallback for browsers without visualViewport
     const handleFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
@@ -60,14 +76,13 @@ export function Sidebar({ role }: SidebarProps) {
       }
     }
 
-    const handleFocusOut = (e: FocusEvent) => {
-      // Small delay to prevent flickering when moving between inputs
+    const handleFocusOut = () => {
       setTimeout(() => {
         const activeEl = document.activeElement
         if (activeEl?.tagName !== 'INPUT' && activeEl?.tagName !== 'TEXTAREA' && activeEl?.tagName !== 'SELECT') {
           setIsKeyboardOpen(false)
         }
-      }, 100)
+      }, 150)
     }
 
     document.addEventListener('focusin', handleFocusIn)

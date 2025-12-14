@@ -413,7 +413,7 @@ export default function StudentDashboard() {
             Select the dates you'll be on holiday. All lessons during this period will be cancelled.
           </p>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Start Date"
               type="date"
