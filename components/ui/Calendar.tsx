@@ -65,7 +65,7 @@ export function Calendar({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-gray-800',
+        'bg-white dark:bg-gray-900 rounded-2xl p-3 sm:p-5 shadow-soft border border-gray-100 dark:border-gray-800',
         className
       )}
     >
@@ -115,7 +115,7 @@ export function Calendar({
               transition={{ duration: 0.1 }}
               onClick={() => onDateSelect?.(day)}
               className={cn(
-                'min-h-[80px] p-2 rounded-xl cursor-pointer transition-all duration-200',
+                'min-h-[64px] sm:min-h-[80px] p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200',
                 isCurrentMonth ? 'bg-gray-50/50 dark:bg-gray-950/40' : 'bg-transparent',
                 isSelected && 'ring-2 ring-primary-500 bg-white dark:bg-gray-900',
                 isDayToday && !isSelected && 'ring-1 ring-gray-300 dark:ring-gray-700 bg-white dark:bg-gray-900',
@@ -143,7 +143,7 @@ export function Calendar({
                         onLessonClick?.(lesson)
                       }}
                       className={cn(
-                        'text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-colors',
+                        'text-[11px] sm:text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-colors',
                         lesson.status === 'cancelled'
                           ? 'bg-gray-100 text-gray-400 line-through dark:bg-gray-800 dark:text-gray-500'
                           : lesson.status === 'completed'

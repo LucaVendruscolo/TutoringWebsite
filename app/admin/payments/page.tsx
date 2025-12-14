@@ -141,7 +141,7 @@ export default function AdminPaymentsPage() {
         <div>
           <Link
             href="/admin/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 mb-2 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-2 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -198,7 +198,7 @@ export default function AdminPaymentsPage() {
                         selectedStudent === student.id
                           ? 'bg-primary-100 border-primary-200'
                           : 'hover:bg-gray-50 hover:translate-x-1'
-                      } border border-transparent`}
+                      } border border-transparent dark:hover:bg-gray-900/60 dark:focus-visible:ring-2 dark:focus-visible:ring-primary-500/40`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-100 to-accent-100 flex items-center justify-center">
@@ -207,10 +207,10 @@ export default function AdminPaymentsPage() {
                           </span>
                         </div>
                         <div className="text-left">
-                          <p className="font-medium text-gray-900 text-sm">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                             {student.student_name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {student.parent_name}
                           </p>
                         </div>
@@ -264,16 +264,16 @@ export default function AdminPaymentsPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.02 }}
-                        className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100"
+                        className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 dark:bg-gray-900/50 dark:border-gray-800"
                       >
                         <div className="flex items-center gap-4">
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                               transaction.type === 'deposit'
-                                ? 'bg-mint-100'
+                                ? 'bg-mint-100 dark:bg-mint-500/10'
                                 : transaction.type === 'refund'
-                                ? 'bg-accent-100'
-                                : 'bg-coral-100'
+                                ? 'bg-accent-100 dark:bg-accent-500/10'
+                                : 'bg-coral-100 dark:bg-coral-500/10'
                             }`}
                           >
                             {transaction.type === 'deposit' ? (
@@ -285,20 +285,20 @@ export default function AdminPaymentsPage() {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
                               {transaction.description}
                             </p>
                             {transaction.type === 'deposit' && (
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Paid by{' '}
-                                <span className="font-medium text-gray-700">
+                                <span className="font-medium text-gray-700 dark:text-gray-200">
                                   {transaction.student?.parent_name?.trim?.() ||
                                     transaction.student?.email ||
                                     'Unknown'}
                                 </span>
                               </p>
                             )}
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                               <Calendar className="w-3 h-3" />
                               {formatDate(transaction.created_at, 'MMM d, yyyy h:mm a')}
                             </div>

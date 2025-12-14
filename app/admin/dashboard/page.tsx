@@ -248,7 +248,7 @@ export default function AdminDashboard() {
             <CardTitle>Upcoming Lessons</CardTitle>
             <Link
               href="/admin/calendar"
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+              className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium flex items-center gap-1"
             >
               View Calendar
               <ArrowRight className="w-4 h-4" />
@@ -267,16 +267,16 @@ export default function AdminDashboard() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100"
+                    className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 dark:from-gray-900/60 dark:to-gray-950/60 dark:border-gray-800"
                   >
                     <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-accent-100 flex items-center justify-center">
                       <Clock className="w-6 h-6 text-primary-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                         {lesson.student?.student_name || 'Student'}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(lesson.start_time, 'EEE, MMM d')} at{' '}
                         {formatTimeInTimezone(lesson.start_time, 'Europe/London')}
                       </p>
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
                       <Badge variant={lesson.is_recurring ? 'accent' : 'neutral'}>
                         {lesson.is_recurring ? 'Recurring' : 'One-off'}
                       </Badge>
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {lesson.duration_minutes} min
                       </span>
                     </div>

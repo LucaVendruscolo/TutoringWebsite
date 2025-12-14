@@ -356,7 +356,7 @@ export default function AdminCalendarPage() {
           <div>
             <Link
               href="/admin/dashboard"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 mb-2 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 mb-2 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
@@ -436,18 +436,19 @@ export default function AdminCalendarPage() {
                       key={lesson.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`flex items-center justify-between p-4 rounded-xl border ${
+                      className={cn(
+                        'flex items-center justify-between p-4 rounded-xl border',
                         lesson.status === 'cancelled'
-                          ? 'bg-gray-50 border-gray-200'
-                          : 'bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100'
-                      }`}
+                          ? 'bg-gray-50 border-gray-200 dark:bg-gray-900/50 dark:border-gray-800'
+                          : 'bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100 dark:from-primary-500/10 dark:to-accent-500/10 dark:border-gray-800'
+                      )}
                     >
                       <div className="flex items-center gap-4">
                         <div
                           className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                             lesson.status === 'cancelled'
-                              ? 'bg-gray-200'
-                              : 'bg-white shadow-sm'
+                              ? 'bg-gray-200 dark:bg-gray-800'
+                              : 'bg-white dark:bg-gray-900 shadow-sm'
                           }`}
                         >
                           <Clock
@@ -463,12 +464,12 @@ export default function AdminCalendarPage() {
                             className={`font-medium ${
                               lesson.status === 'cancelled'
                                 ? 'text-gray-400 line-through'
-                                : 'text-gray-900'
+                                : 'text-gray-900 dark:text-gray-100'
                             }`}
                           >
                             {lesson.student?.student_name}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {formatTimeInTimezone(lesson.start_time, viewTimezone)} -{' '}
                             {formatTimeInTimezone(lesson.end_time, viewTimezone)}
                           </p>
@@ -492,7 +493,7 @@ export default function AdminCalendarPage() {
                         >
                           {lesson.status}
                         </Badge>
-                        <span className="font-medium text-gray-700">
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
                           {formatCurrency(lesson.cost)}
                         </span>
                         <Button
