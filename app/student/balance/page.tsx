@@ -291,12 +291,12 @@ export default function StudentBalancePage() {
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                           transaction.type === 'deposit'
-                            ? 'bg-mint-100 dark:bg-mint-500/10'
+                            ? 'bg-mint-500 dark:bg-mint-600'
                             : 'bg-coral-100 dark:bg-coral-500/10'
                         }`}
                       >
                         {transaction.type === 'deposit' ? (
-                          <Plus className="w-5 h-5 text-mint-600 dark:text-mint-200" />
+                          <Plus className="w-5 h-5 text-white" />
                         ) : (
                           <XCircle className="w-5 h-5 text-coral-600 dark:text-coral-200" />
                         )}

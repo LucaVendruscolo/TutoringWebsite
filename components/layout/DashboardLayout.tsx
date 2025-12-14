@@ -52,14 +52,14 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="h-screen flex bg-[#fafafa] dark:bg-gray-950 overflow-hidden">
+    <div className="h-[100dvh] flex bg-[#fafafa] dark:bg-gray-950 overflow-hidden">
       <Sidebar role={role} />
       
       {/* Main content area */}
       {/* Mobile: fixed bottom nav requires calc for main content height */}
       {/* Desktop: add left margin to account for the sidebar's offset from edge */}
-      <main className="flex-1 min-w-0 w-full overflow-y-auto overflow-x-hidden md:ml-3">
-        <div className="p-4 pb-24 md:p-8 md:pb-8 min-h-full">
+      <main className="flex-1 min-w-0 w-full overflow-y-auto overflow-x-hidden overscroll-contain lg:ml-3">
+        <div className="p-4 pb-24 lg:p-8 lg:pb-8 min-h-full">
           {/* Password warning - positioned at bottom to avoid toast overlap */}
           <AnimatePresence>
             {showPasswordWarning && (
@@ -67,7 +67,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-24 md:bottom-5 right-5 z-40 max-w-sm"
+                className="fixed bottom-24 lg:bottom-5 right-5 z-40 max-w-sm"
               >
                 <Alert
                   variant="warning"

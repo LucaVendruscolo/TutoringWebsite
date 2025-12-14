@@ -134,32 +134,59 @@ export function Calendar({
 
               {/* Lesson indicators */}
               {showLessons && dayLessons.length > 0 && (
-                <div className="space-y-1">
-                  {dayLessons.slice(0, 2).map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onLessonClick?.(lesson)
-                      }}
-                      className={cn(
-                        'text-[11px] sm:text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-colors',
-                        lesson.status === 'cancelled'
-                          ? 'bg-gray-100 text-gray-400 line-through dark:bg-gray-800 dark:text-gray-500'
-                          : lesson.status === 'completed'
-                          ? 'bg-mint-50 text-mint-600 dark:bg-mint-500/10 dark:text-mint-200'
-                          : 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-200'
-                      )}
-                    >
-                      {lesson.student?.student_name || format(parseISO(lesson.start_time), 'HH:mm')}
-                    </div>
-                  ))}
-                  {dayLessons.length > 2 && (
-                    <div className="text-xs text-gray-400 dark:text-gray-500 px-1">
-                      +{dayLessons.length - 2} more
-                    </div>
-                  )}
-                </div>
+                <>
+                  {/* Mobile: just show dots */}
+                  <div className="flex flex-wrap gap-1 sm:hidden">
+                    {dayLessons.slice(0, 3).map((lesson) => (
+                      <div
+                        key={lesson.id}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onLessonClick?.(lesson)
+                        }}
+                        className={cn(
+                          'w-2 h-2 rounded-full cursor-pointer',
+                          lesson.status === 'cancelled'
+                            ? 'bg-gray-300 dark:bg-gray-600'
+                            : lesson.status === 'completed'
+                            ? 'bg-mint-500'
+                            : 'bg-primary-500'
+                        )}
+                      />
+                    ))}
+                    {dayLessons.length > 3 && (
+                      <span className="text-[9px] text-gray-400">+{dayLessons.length - 3}</span>
+                    )}
+                  </div>
+                  
+                  {/* Desktop: show labels */}
+                  <div className="hidden sm:block space-y-1">
+                    {dayLessons.slice(0, 2).map((lesson) => (
+                      <div
+                        key={lesson.id}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onLessonClick?.(lesson)
+                        }}
+                        className={cn(
+                          'text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-colors',
+                          lesson.status === 'cancelled'
+                            ? 'bg-gray-100 text-gray-400 line-through dark:bg-gray-800 dark:text-gray-500'
+                            : lesson.status === 'completed'
+                            ? 'bg-mint-50 text-mint-600 dark:bg-mint-500/10 dark:text-mint-200'
+                            : 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-200'
+                        )}
+                      >
+                        {lesson.student?.student_name || format(parseISO(lesson.start_time), 'HH:mm')}
+                      </div>
+                    ))}
+                    {dayLessons.length > 2 && (
+                      <div className="text-xs text-gray-400 dark:text-gray-500 px-1">
+                        +{dayLessons.length - 2} more
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </motion.div>
           )

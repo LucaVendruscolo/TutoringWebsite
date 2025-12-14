@@ -66,7 +66,7 @@ export function Sidebar({ role }: SidebarProps) {
       {/* ========== DESKTOP SIDEBAR ========== */}
       <aside
         className={cn(
-          'hidden md:flex',
+          'hidden lg:flex',
           'fixed z-50 h-[calc(100vh-1.5rem)] w-[240px]',
           'top-3 left-3',
           'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl',
@@ -130,7 +130,7 @@ export function Sidebar({ role }: SidebarProps) {
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
       <nav
         className={cn(
-          'md:hidden fixed bottom-0 left-0 right-0 z-50',
+          'lg:hidden fixed bottom-0 left-0 right-0 z-50',
           'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl',
           'border-t border-gray-200/50 dark:border-gray-700/50',
           'pb-[env(safe-area-inset-bottom)]'
@@ -193,7 +193,7 @@ export function Sidebar({ role }: SidebarProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setIsMoreOpen(false)}
-              className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+              className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
             />
 
             {/* Bottom Sheet */}
@@ -203,7 +203,7 @@ export function Sidebar({ role }: SidebarProps) {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               className={cn(
-                'md:hidden fixed bottom-0 left-0 right-0 z-[70]',
+                'lg:hidden fixed bottom-0 left-0 right-0 z-[70]',
                 'bg-white dark:bg-gray-900',
                 'rounded-t-3xl',
                 'pb-[env(safe-area-inset-bottom)]',
