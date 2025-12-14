@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       const { data: creditTxs } = await supabase
         .from('transactions')
         .select('student_id, type, amount')
-        .in('type', ['deposit', 'refund'])
+        .eq('type', 'deposit')
         .limit(5000)
 
       const { data: endedLessons } = await supabase
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
 
       const creditsByStudent: Record<string, { type: any; amount: any }[]> = {}
       for (const tx of creditTxs || []) {
-        if (tx.type !== 'deposit' && tx.type !== 'refund') continue
+        if (tx.type !== 'deposit') continue
         const sid = tx.student_id
         if (!creditsByStudent[sid]) creditsByStudent[sid] = []
         creditsByStudent[sid].push({ type: tx.type, amount: tx.amount })
@@ -161,14 +161,14 @@ export default function AdminDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Welcome back! Here's an overview of your tutoring business.
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1">
+            Overview of your tutoring business
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           <StatCard
             title="Active Students"
             value={stats?.totalStudents || 0}
@@ -267,27 +267,33 @@ export default function AdminDashboard() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800"
+                    className="p-3 sm:p-4 rounded-xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800"
                   >
-                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-accent-100 dark:from-primary-500/20 dark:to-accent-500/20 flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-primary-600 dark:text-primary-200" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {lesson.student?.student_name || 'Student'}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(lesson.start_time, 'EEE, MMM d')} at{' '}
-                        {formatTimeInTimezone(lesson.start_time, 'Europe/London')}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 flex items-center gap-3">
-                      <Badge variant={lesson.is_recurring ? 'accent' : 'neutral'}>
-                        {lesson.is_recurring ? 'Recurring' : 'One-off'}
-                      </Badge>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {lesson.duration_minutes} min
-                      </span>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary-100 to-accent-100 dark:from-primary-500/20 dark:to-accent-500/20 flex items-center justify-center">
+                        <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 dark:text-primary-200" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100 truncate">
+                              {lesson.student?.student_name || 'Student'}
+                            </p>
+                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                              {formatDate(lesson.start_time, 'EEE, MMM d')} at{' '}
+                              {formatTimeInTimezone(lesson.start_time, 'Europe/London')}
+                            </p>
+                          </div>
+                          <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">
+                            {lesson.duration_minutes} min
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant={lesson.is_recurring ? 'accent' : 'neutral'} size="sm">
+                            {lesson.is_recurring ? 'Recurring' : 'One-off'}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -297,16 +303,16 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           <Link href="/admin/students">
             <Card hover className="cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary-100">
-                  <Users className="w-6 h-6 text-primary-600" />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-primary-100 flex-shrink-0">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Add Student</h3>
-                  <p className="text-sm text-gray-500">Create a new student account</p>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100">Add Student</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Create a new student account</p>
                 </div>
               </div>
             </Card>
@@ -314,13 +320,13 @@ export default function AdminDashboard() {
 
           <Link href="/admin/calendar">
             <Card hover className="cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-accent-100">
-                  <Calendar className="w-6 h-6 text-accent-600" />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-accent-100 flex-shrink-0">
+                  <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-accent-600" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Book Lesson</h3>
-                  <p className="text-sm text-gray-500">Schedule a new lesson</p>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100">Book Lesson</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Schedule a new lesson</p>
                 </div>
               </div>
             </Card>
@@ -328,13 +334,13 @@ export default function AdminDashboard() {
 
           <Link href="/admin/payments">
             <Card hover className="cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-mint-100">
-                  <PoundSterling className="w-6 h-6 text-mint-600" />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-mint-100 flex-shrink-0">
+                  <PoundSterling className="w-5 h-5 sm:w-6 sm:h-6 text-mint-600" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">View Payments</h3>
-                  <p className="text-sm text-gray-500">Check payment history</p>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100">View Payments</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Check payment history</p>
                 </div>
               </div>
             </Card>

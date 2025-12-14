@@ -133,7 +133,7 @@ export default function StudentCalendarPage() {
                     <div
                       key={lesson.id}
                       onClick={() => openViewModal(lesson)}
-                      className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
+                      className={`p-3 sm:p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
                         lesson.status === 'cancelled'
                           ? 'bg-gray-50 border-gray-200 dark:bg-gray-900/50 dark:border-gray-800'
                           : isPast
@@ -141,9 +141,9 @@ export default function StudentCalendarPage() {
                           : 'bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100 dark:from-primary-500/10 dark:to-accent-500/10 dark:border-gray-800'
                       }`}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-3">
                         <div
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          className={`w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center ${
                             lesson.status === 'cancelled'
                               ? 'bg-gray-200 dark:bg-gray-800'
                               : isPast
@@ -161,51 +161,56 @@ export default function StudentCalendarPage() {
                             />
                           )}
                         </div>
-                        <div>
-                          <p
-                            className={`font-medium ${
-                              lesson.status === 'cancelled'
-                                ? 'text-gray-400 line-through'
-                                : 'text-gray-900 dark:text-gray-100'
-                            }`}
-                          >
-                            Tutoring Session
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatTimeInTimezone(
-                              lesson.start_time,
-                              profile?.timezone || 'Europe/London'
-                            )}{' '}
-                            -{' '}
-                            {formatTimeInTimezone(
-                              lesson.end_time,
-                              profile?.timezone || 'Europe/London'
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p
+                                className={`font-medium text-sm sm:text-base ${
+                                  lesson.status === 'cancelled'
+                                    ? 'text-gray-400 line-through'
+                                    : 'text-gray-900 dark:text-gray-100'
+                                }`}
+                              >
+                                Tutoring Session
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                                {formatTimeInTimezone(
+                                  lesson.start_time,
+                                  profile?.timezone || 'Europe/London'
+                                )}{' '}
+                                -{' '}
+                                {formatTimeInTimezone(
+                                  lesson.end_time,
+                                  profile?.timezone || 'Europe/London'
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            {lesson.is_recurring && (
+                              <Badge variant="accent" size="sm">
+                                <RefreshCw className="w-3 h-3 mr-1" />
+                                Weekly
+                              </Badge>
                             )}
-                          </p>
+                            <Badge
+                              size="sm"
+                              variant={
+                                lesson.status === 'cancelled'
+                                  ? 'danger'
+                                  : isPast
+                                  ? 'success'
+                                  : 'neutral'
+                              }
+                            >
+                              {lesson.status === 'cancelled'
+                                ? 'Cancelled'
+                                : isPast
+                                ? 'Completed'
+                                : 'Scheduled'}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {lesson.is_recurring && (
-                          <Badge variant="accent">
-                            <RefreshCw className="w-3 h-3 mr-1" />
-                            Weekly
-                          </Badge>
-                        )}
-                        <Badge
-                          variant={
-                            lesson.status === 'cancelled'
-                              ? 'danger'
-                              : isPast
-                              ? 'success'
-                              : 'neutral'
-                          }
-                        >
-                          {lesson.status === 'cancelled'
-                            ? 'Cancelled'
-                            : isPast
-                            ? 'Completed'
-                            : 'Scheduled'}
-                        </Badge>
                       </div>
                     </div>
                   )

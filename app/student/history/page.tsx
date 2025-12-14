@@ -7,14 +7,11 @@ import {
   ArrowUpRight,
   ArrowLeft,
   Calendar,
-  Filter,
-  Download,
 } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Select } from '@/components/ui/Select'
 import { Spinner } from '@/components/ui/Spinner'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -24,7 +21,7 @@ import Link from 'next/link'
 export default function StudentHistoryPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'deposit' | 'lesson_charge' | 'refund'>('all')
+  const [filter, setFilter] = useState<'all' | 'deposit' | 'lesson_charge'>('all')
   const supabase = createClient()
 
   useEffect(() => {
@@ -36,6 +33,7 @@ export default function StudentHistoryPage() {
         .from('transactions')
         .select('*')
         .eq('student_id', user.id)
+        .in('type', ['deposit', 'lesson_charge'])
         .order('created_at', { ascending: false })
 
       if (transactionsData) {
@@ -76,23 +74,23 @@ export default function StudentHistoryPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Payment History</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Payment History</h1>
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1">
               View all your transactions
             </p>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2">
-          {(['all', 'deposit', 'lesson_charge', 'refund'] as const).map((f) => (
+        <div className="flex gap-2 flex-wrap">
+          {(['all', 'deposit', 'lesson_charge'] as const).map((f) => (
             <Button
               key={f}
               variant={filter === f ? 'primary' : 'ghost'}
               size="sm"
               onClick={() => setFilter(f)}
             >
-              {f === 'lesson_charge' ? 'Charges' : f.charAt(0).toUpperCase() + f.slice(1)}
+              {f === 'lesson_charge' ? 'Charges' : f === 'deposit' ? 'Deposits' : 'All'}
             </Button>
           ))}
         </div>
@@ -115,64 +113,57 @@ export default function StudentHistoryPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.02 }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 dark:bg-gray-900/50 dark:border-gray-800"
+                    className="p-3 sm:p-4 rounded-xl bg-gray-50 border border-gray-100 dark:bg-gray-900/50 dark:border-gray-800"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-start gap-3">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center ${
                           transaction.type === 'deposit'
                             ? 'bg-mint-100 dark:bg-mint-500/10'
-                            : transaction.type === 'refund'
-                            ? 'bg-accent-100 dark:bg-accent-500/10'
                             : 'bg-coral-100 dark:bg-coral-500/10'
                         }`}
                       >
-                        {transaction.type === 'deposit' ||
-                        transaction.type === 'refund' ? (
-                          <ArrowDownRight
-                            className={`w-5 h-5 ${
-                              transaction.type === 'deposit'
-                                ? 'text-mint-600'
-                                : 'text-accent-600'
-                            }`}
-                          />
+                        {transaction.type === 'deposit' ? (
+                          <ArrowDownRight className="w-5 h-5 text-mint-600" />
                         ) : (
                           <ArrowUpRight className="w-5 h-5 text-coral-600 dark:text-coral-200" />
                         )}
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {transaction.description}
-                        </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(transaction.created_at, 'MMM d, yyyy h:mm a')}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
+                              {transaction.description}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                              <Calendar className="w-3 h-3 flex-shrink-0" />
+                              {formatDate(transaction.created_at, 'MMM d, yyyy h:mm a')}
+                            </div>
+                          </div>
+                          <p
+                            className={`font-semibold text-sm flex-shrink-0 ${
+                              transaction.type === 'lesson_charge'
+                                ? 'text-coral-600'
+                                : 'text-mint-600'
+                            }`}
+                          >
+                            {transaction.type === 'lesson_charge' ? '-' : '+'}
+                            {formatCurrency(Math.abs(transaction.amount))}
+                          </p>
+                        </div>
+                        <div className="mt-2">
+                          <Badge
+                            variant={
+                              transaction.type === 'deposit'
+                                ? 'success'
+                                : 'danger'
+                            }
+                            size="sm"
+                          >
+                            {transaction.type === 'deposit' ? 'deposit' : 'charge'}
+                          </Badge>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p
-                        className={`font-semibold ${
-                          transaction.type === 'lesson_charge'
-                            ? 'text-coral-600'
-                            : 'text-mint-600'
-                        }`}
-                      >
-                        {transaction.type === 'lesson_charge' ? '-' : '+'}
-                        {formatCurrency(Math.abs(transaction.amount))}
-                      </p>
-                      <Badge
-                        variant={
-                          transaction.type === 'deposit'
-                            ? 'success'
-                            : transaction.type === 'refund'
-                            ? 'accent'
-                            : 'danger'
-                        }
-                        size="sm"
-                      >
-                        {transaction.type.replace('_', ' ')}
-                      </Badge>
                     </div>
                   </motion.div>
                 ))}
@@ -184,4 +175,3 @@ export default function StudentHistoryPage() {
     </DashboardLayout>
   )
 }
-

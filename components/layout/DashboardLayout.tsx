@@ -52,46 +52,48 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#fafafa] dark:bg-gray-950 overflow-x-hidden">
+    <div className="h-screen flex bg-[#fafafa] dark:bg-gray-950 overflow-hidden">
       <Sidebar role={role} />
       
       {/* Main content area */}
-      {/* Mobile: add bottom padding for bottom nav, prevent horizontal overflow */}
+      {/* Mobile: fixed bottom nav requires calc for main content height */}
       {/* Desktop: add left margin to account for the sidebar's offset from edge */}
-      <main className="flex-1 min-w-0 w-full p-4 pb-28 md:p-8 md:pb-8 md:ml-3 overflow-x-hidden">
-        {/* Password warning - positioned at bottom to avoid toast overlap */}
-        <AnimatePresence>
-          {showPasswordWarning && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-24 md:bottom-5 right-5 z-40 max-w-sm"
-            >
-              <Alert
-                variant="warning"
-                title="Password Not Changed"
-                onClose={() => setShowPasswordWarning(false)}
+      <main className="flex-1 min-w-0 w-full overflow-y-auto overflow-x-hidden md:ml-3">
+        <div className="p-4 pb-24 md:p-8 md:pb-8 min-h-full">
+          {/* Password warning - positioned at bottom to avoid toast overlap */}
+          <AnimatePresence>
+            {showPasswordWarning && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed bottom-24 md:bottom-5 right-5 z-40 max-w-sm"
               >
-                You're still using a temporary password. Please change it in Settings for security.
-              </Alert>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <Alert
+                  variant="warning"
+                  title="Password Not Changed"
+                  onClose={() => setShowPasswordWarning(false)}
+                >
+                  You're still using a temporary password. Please change it in Settings for security.
+                </Alert>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* Page content */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            type: 'spring',
-            stiffness: 400,
-            damping: 30,
-          }}
-          className="max-w-6xl mx-auto"
-        >
-          {children}
-        </motion.div>
+          {/* Page content */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
+            }}
+            className="max-w-6xl mx-auto"
+          >
+            {children}
+          </motion.div>
+        </div>
       </main>
     </div>
   )

@@ -12,7 +12,7 @@ export async function recalculateAndPersistStudentBalance(
         .from('transactions')
         .select('type, amount')
         .eq('student_id', studentId)
-        .in('type', ['deposit', 'refund']),
+        .eq('type', 'deposit'),
       supabaseAdmin
         .from('lessons')
         .select('status, end_time, cost')

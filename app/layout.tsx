@@ -19,33 +19,33 @@ export default function RootLayout({
       <body className="antialiased">
         <script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
         <ThemeProvider>
-          <div className="bg-abstract" />
-          {children}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
+        <div className="bg-abstract" />
+        {children}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
                 background: 'var(--toast-bg)',
                 color: 'var(--toast-color)',
-                borderRadius: '12px',
-                padding: '16px',
+              borderRadius: '12px',
+              padding: '16px',
                 boxShadow: 'var(--toast-shadow)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#22c55e',
+                secondary: '#fff',
               },
-              success: {
-                iconTheme: {
-                  primary: '#22c55e',
-                  secondary: '#fff',
-                },
+            },
+            error: {
+              iconTheme: {
+                primary: '#ff4757',
+                secondary: '#fff',
               },
-              error: {
-                iconTheme: {
-                  primary: '#ff4757',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
+            },
+          }}
+        />
         </ThemeProvider>
       </body>
     </html>

@@ -1,12 +1,8 @@
 import type { Lesson, Transaction } from '@/lib/types'
 
-type CreditTransactionType = Extract<Transaction['type'], 'deposit' | 'refund'>
-
 export function sumCredits(transactions: Pick<Transaction, 'type' | 'amount'>[]): number {
   return transactions
-    .filter((t): t is Pick<Transaction, 'amount'> & { type: CreditTransactionType } =>
-      t.type === 'deposit' || t.type === 'refund'
-    )
+    .filter((t) => t.type === 'deposit')
     .reduce((sum, t) => sum + Number(t.amount || 0), 0)
 }
 

@@ -437,16 +437,17 @@ export default function AdminCalendarPage() {
                       key={lesson.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
+                      onClick={() => openViewModal(lesson)}
                       className={cn(
-                        'flex items-center justify-between p-4 rounded-xl border',
+                        'p-3 sm:p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md',
                         lesson.status === 'cancelled'
                           ? 'bg-gray-50 border-gray-200 dark:bg-gray-900/50 dark:border-gray-800'
                           : 'bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100 dark:from-primary-500/10 dark:to-accent-500/10 dark:border-gray-800'
                       )}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-3">
                         <div
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          className={`w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center ${
                             lesson.status === 'cancelled'
                               ? 'bg-gray-200 dark:bg-gray-800'
                               : 'bg-white dark:bg-gray-900 shadow-sm'
@@ -460,50 +461,48 @@ export default function AdminCalendarPage() {
                             }`}
                           />
                         </div>
-                        <div>
-                          <p
-                            className={`font-medium ${
-                              lesson.status === 'cancelled'
-                                ? 'text-gray-400 line-through'
-                                : 'text-gray-900 dark:text-gray-100'
-                            }`}
-                          >
-                            {lesson.student?.student_name}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatTimeInTimezone(lesson.start_time, viewTimezone)} -{' '}
-                            {formatTimeInTimezone(lesson.end_time, viewTimezone)}
-                          </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p
+                                className={`font-medium text-sm sm:text-base ${
+                                  lesson.status === 'cancelled'
+                                    ? 'text-gray-400 line-through'
+                                    : 'text-gray-900 dark:text-gray-100'
+                                }`}
+                              >
+                                {lesson.student?.student_name}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                                {formatTimeInTimezone(lesson.start_time, viewTimezone)} -{' '}
+                                {formatTimeInTimezone(lesson.end_time, viewTimezone)}
+                              </p>
+                            </div>
+                            <span className="font-semibold text-sm text-gray-700 dark:text-gray-200 flex-shrink-0">
+                              {formatCurrency(lesson.cost)}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            {lesson.is_recurring && (
+                              <Badge variant="accent" size="sm">
+                                <RefreshCw className="w-3 h-3 mr-1" />
+                                Recurring
+                              </Badge>
+                            )}
+                            <Badge
+                              variant={
+                                lesson.status === 'cancelled'
+                                  ? 'danger'
+                                  : lesson.status === 'completed'
+                                  ? 'success'
+                                  : 'neutral'
+                              }
+                              size="sm"
+                            >
+                              {lesson.status}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {lesson.is_recurring && (
-                          <Badge variant="accent">
-                            <RefreshCw className="w-3 h-3 mr-1" />
-                            Recurring
-                          </Badge>
-                        )}
-                        <Badge
-                          variant={
-                            lesson.status === 'cancelled'
-                              ? 'danger'
-                              : lesson.status === 'completed'
-                              ? 'success'
-                              : 'neutral'
-                          }
-                        >
-                          {lesson.status}
-                        </Badge>
-                        <span className="font-medium text-gray-700 dark:text-gray-200">
-                          {formatCurrency(lesson.cost)}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openViewModal(lesson)}
-                        >
-                          View
-                        </Button>
                       </div>
                     </motion.div>
                   ))}

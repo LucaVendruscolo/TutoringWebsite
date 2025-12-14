@@ -71,7 +71,7 @@ export default function StudentsPage() {
     const { data: creditTxs } = await supabase
       .from('transactions')
       .select('student_id, type, amount')
-      .in('type', ['deposit', 'refund'])
+      .eq('type', 'deposit')
       .limit(5000)
 
     const { data: endedLessons } = await supabase

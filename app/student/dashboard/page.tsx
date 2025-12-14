@@ -89,7 +89,7 @@ export default function StudentDashboard() {
       .from('transactions')
       .select('type, amount')
       .eq('student_id', user.id)
-      .in('type', ['deposit', 'refund'])
+      .eq('type', 'deposit')
 
     const { data: pastLessons } = await supabase
       .from('lessons')

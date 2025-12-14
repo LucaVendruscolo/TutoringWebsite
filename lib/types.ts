@@ -37,7 +37,7 @@ export interface Lesson {
 export interface Transaction {
   id: string
   student_id: string
-  type: 'deposit' | 'lesson_charge' | 'refund'
+  type: 'deposit' | 'lesson_charge'
   amount: number
   description: string
   lesson_id: string | null

@@ -7,7 +7,6 @@ import {
   Wallet,
   PoundSterling,
   Plus,
-  CheckCircle,
   XCircle,
   CreditCard,
   ArrowLeft,
@@ -79,7 +78,7 @@ export default function StudentBalancePage() {
         .from('transactions')
         .select('type, amount')
         .eq('student_id', user.id)
-        .in('type', ['deposit', 'refund'])
+        .eq('type', 'deposit')
 
       // Fetch ended lessons (debits)
       const now = new Date()
@@ -184,11 +183,6 @@ export default function StudentBalancePage() {
             <StatCard
               title="Current Balance"
               value={formatCurrency(derivedBalance)}
-              subtitle={
-                derivedBalance < 0
-                  ? 'You owe this amount'
-                  : 'Available credit'
-              }
               icon={<Wallet className="w-6 h-6" />}
               variant={derivedBalance < 0 ? 'warning' : 'success'}
             />
@@ -298,15 +292,11 @@ export default function StudentBalancePage() {
                         className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                           transaction.type === 'deposit'
                             ? 'bg-mint-100 dark:bg-mint-500/10'
-                            : transaction.type === 'refund'
-                            ? 'bg-accent-100 dark:bg-accent-500/10'
                             : 'bg-coral-100 dark:bg-coral-500/10'
                         }`}
                       >
                         {transaction.type === 'deposit' ? (
                           <Plus className="w-5 h-5 text-mint-600 dark:text-mint-200" />
-                        ) : transaction.type === 'refund' ? (
-                          <CheckCircle className="w-5 h-5 text-accent-600 dark:text-accent-200" />
                         ) : (
                           <XCircle className="w-5 h-5 text-coral-600 dark:text-coral-200" />
                         )}

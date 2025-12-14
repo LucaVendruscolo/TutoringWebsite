@@ -62,15 +62,15 @@ export function StatCard({
       }}
       style={{ willChange: 'transform' }}
       className={cn(
-        'relative overflow-hidden rounded-2xl p-5 shadow-soft border border-gray-100 dark:border-gray-800',
+        'relative overflow-hidden rounded-2xl p-3 sm:p-5 shadow-soft border border-gray-100 dark:border-gray-800',
         config.bg,
         className
       )}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
-          <p className={cn('text-2xl font-semibold mt-1 tracking-tight', config.accent)}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{title}</p>
+          <p className={cn('text-lg sm:text-2xl font-semibold mt-1 tracking-tight truncate', config.accent)}>
             {value}
           </p>
           {subtitle && (
@@ -96,11 +96,13 @@ export function StatCard({
         {icon && (
           <div
             className={cn(
-              'p-2.5 rounded-xl',
+              'p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl flex-shrink-0',
               config.icon
             )}
           >
-            {icon}
+            <div className="w-4 h-4 sm:w-6 sm:h-6 [&>svg]:w-full [&>svg]:h-full">
+              {icon}
+            </div>
           </div>
         )}
       </div>
