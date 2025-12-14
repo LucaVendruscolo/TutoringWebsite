@@ -34,7 +34,7 @@ export default function StudentHistoryPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'deposit' | 'lesson_charge'>('all')
+  const [filter, setFilter] = useState<'all' | 'deposit'>('all')
   
   // Receipt modal state
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
@@ -184,14 +184,14 @@ export default function StudentHistoryPage() {
 
         {/* Filters */}
         <div className="flex gap-2 flex-wrap">
-          {(['all', 'deposit', 'lesson_charge'] as const).map((f) => (
+          {(['all', 'deposit'] as const).map((f) => (
             <Button
               key={f}
               variant={filter === f ? 'primary' : 'ghost'}
               size="sm"
               onClick={() => setFilter(f)}
             >
-              {f === 'lesson_charge' ? 'Charges' : f === 'deposit' ? 'Deposits' : 'All'}
+              {f === 'deposit' ? 'Deposits' : 'All'}
             </Button>
           ))}
         </div>
