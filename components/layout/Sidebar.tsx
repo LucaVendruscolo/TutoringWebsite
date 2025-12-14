@@ -47,45 +47,9 @@ const studentLinks = [
 export function Sidebar({ role }: SidebarProps) {
   const [isMoreOpen, setIsMoreOpen] = useState(false)
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
-  const [navBottom, setNavBottom] = useState(0)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
-
-  // Handle viewport changes (Chrome address bar hiding/showing)
-  useEffect(() => {
-    const updateNavPosition = () => {
-      // Use visualViewport API if available (more accurate for mobile)
-      if (window.visualViewport) {
-        const viewport = window.visualViewport
-        // Calculate the offset from the bottom of the layout viewport
-        // When address bar hides, visualViewport.height increases but offsetTop stays 0
-        // The nav should stay at the bottom of the visual viewport
-        const offset = window.innerHeight - (viewport.height + viewport.offsetTop)
-        setNavBottom(Math.max(0, offset))
-      }
-    }
-
-    // Initial update
-    updateNavPosition()
-
-    // Listen to visualViewport changes
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateNavPosition)
-      window.visualViewport.addEventListener('scroll', updateNavPosition)
-    }
-
-    // Also listen to window resize as fallback
-    window.addEventListener('resize', updateNavPosition)
-
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateNavPosition)
-        window.visualViewport.removeEventListener('scroll', updateNavPosition)
-      }
-      window.removeEventListener('resize', updateNavPosition)
-    }
-  }, [])
 
   // Hide bottom nav when keyboard is open (input focused)
   useEffect(() => {
@@ -193,7 +157,7 @@ export function Sidebar({ role }: SidebarProps) {
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
       {/* Hidden when keyboard is open to prevent layout issues */}
-      {/* Position adjusted dynamically for Chrome address bar changes */}
+      {/* Use sticky positioning within the viewport for better Chrome compatibility */}
       <nav
         className={cn(
           'lg:hidden fixed left-0 right-0 z-50',
@@ -203,7 +167,7 @@ export function Sidebar({ role }: SidebarProps) {
           isKeyboardOpen ? 'translate-y-full' : ''
         )}
         style={{ 
-          bottom: navBottom,
+          bottom: 0,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)' 
         }}
       >
