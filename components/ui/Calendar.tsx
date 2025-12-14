@@ -65,7 +65,7 @@ export function Calendar({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-gray-900 rounded-2xl p-3 sm:p-5 shadow-soft border border-gray-100 dark:border-gray-800',
+        'bg-white dark:bg-gray-900 rounded-2xl p-3 sm:p-5 shadow-soft border border-gray-100 dark:border-gray-800 overflow-x-auto',
         className
       )}
     >

@@ -381,7 +381,7 @@ export default function StudentsPage() {
                         >
                           {student.password_changed ? 'Active' : 'Temp Password'}
                         </Badge>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -395,16 +395,18 @@ export default function StudentsPage() {
                             size="sm"
                             onClick={() => handleToggleActive(student)}
                             title="Set as inactive"
-                            className="text-amber-600 hover:bg-amber-50"
+                            className="text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10"
                           >
                             <UserMinus className="w-4 h-4" />
                           </Button>
+                          {/* Spacer */}
+                          <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteStudent(student)}
                             title="Delete student"
-                            className="text-coral-600 hover:bg-coral-50"
+                            className="text-coral-600 hover:bg-coral-50 dark:hover:bg-coral-500/10"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

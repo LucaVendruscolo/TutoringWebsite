@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import {
   Search,
   PoundSterling,
-  TrendingDown,
   TrendingUp,
   Calendar,
   ArrowUpRight,
@@ -13,6 +12,8 @@ import {
   ArrowLeft,
   Plus,
   Banknote,
+  Edit2,
+  Trash2,
 } from 'lucide-react'
 import Link from 'next/link'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -39,9 +40,10 @@ export default function AdminPaymentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null)
   
-  // Manual payment modal state
-  const [isManualPaymentOpen, setIsManualPaymentOpen] = useState(false)
-  const [manualPaymentData, setManualPaymentData] = useState({
+  // Add/Edit payment modal state
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [paymentData, setPaymentData] = useState({
     studentId: '',
     amount: '',
     description: '',
@@ -52,7 +54,6 @@ export default function AdminPaymentsPage() {
 
   const fetchData = async () => {
     const now = new Date()
-    const oneYearAgo = subYears(now, 1)
 
     // Fetch students
     const { data: studentsData } = await supabase
@@ -83,8 +84,7 @@ export default function AdminPaymentsPage() {
       .lt('end_time', now.toISOString())
       .neq('status', 'cancelled')
 
-    // Compute derived balances per student:
-    // balance = sum(deposits+refunds) - sum(past lesson costs)
+    // Compute derived balances per student
     const creditsByStudent: Record<string, { type: any; amount: any }[]> = {}
     for (const tx of transactionsData || []) {
       if (tx.type !== 'deposit' && tx.type !== 'refund') continue
@@ -117,44 +117,99 @@ export default function AdminPaymentsPage() {
     fetchData()
   }, [supabase])
 
-  const handleAddManualPayment = async (e: React.FormEvent) => {
+  const openAddPaymentModal = () => {
+    setEditingTransaction(null)
+    setPaymentData({ studentId: '', amount: '', description: '' })
+    setIsPaymentModalOpen(true)
+  }
+
+  const openEditPaymentModal = (transaction: Transaction) => {
+    setEditingTransaction(transaction)
+    setPaymentData({
+      studentId: transaction.student_id,
+      amount: transaction.amount.toString(),
+      description: transaction.description,
+    })
+    setIsPaymentModalOpen(true)
+  }
+
+  const handleSubmitPayment = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!manualPaymentData.studentId || !manualPaymentData.amount) {
+    if (!paymentData.studentId || !paymentData.amount) {
       toast.error('Please select a student and enter an amount')
       return
     }
 
     setIsSubmitting(true)
     try {
-      const amount = parseFloat(manualPaymentData.amount)
+      const amount = parseFloat(paymentData.amount)
       if (isNaN(amount) || amount <= 0) {
         toast.error('Please enter a valid amount')
         return
       }
 
-      const description = manualPaymentData.description.trim() || `Cash payment of ${formatCurrency(amount)}`
+      const description = paymentData.description.trim() || `External payment of ${formatCurrency(amount)}`
 
-      // Create the transaction
-      const { error } = await supabase.from('transactions').insert({
-        student_id: manualPaymentData.studentId,
-        type: 'deposit',
-        amount,
-        description,
-      })
+      if (editingTransaction) {
+        // Update existing transaction
+        const { error } = await supabase
+          .from('transactions')
+          .update({
+            student_id: paymentData.studentId,
+            amount,
+            description,
+          })
+          .eq('id', editingTransaction.id)
 
-      if (error) throw error
+        if (error) throw error
+        toast.success('Payment updated successfully')
+      } else {
+        // Create new transaction
+        const { error } = await supabase.from('transactions').insert({
+          student_id: paymentData.studentId,
+          type: 'deposit',
+          amount,
+          description,
+        })
 
-      toast.success('Payment recorded successfully')
-      setIsManualPaymentOpen(false)
-      setManualPaymentData({ studentId: '', amount: '', description: '' })
+        if (error) throw error
+        toast.success('Payment recorded successfully')
+      }
+
+      setIsPaymentModalOpen(false)
+      setPaymentData({ studentId: '', amount: '', description: '' })
+      setEditingTransaction(null)
       
       // Refresh data
       setLoading(true)
       await fetchData()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to record payment')
+      toast.error(error.message || 'Failed to save payment')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleDeletePayment = async (transaction: Transaction) => {
+    if (!confirm('Are you sure you want to delete this payment? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', transaction.id)
+
+      if (error) throw error
+
+      toast.success('Payment deleted successfully')
+      
+      // Refresh data
+      setLoading(true)
+      await fetchData()
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete payment')
     }
   }
 
@@ -180,6 +235,11 @@ export default function AdminPaymentsPage() {
   const totalDepositsLastYear = transactions
     .filter((t) => t.type === 'deposit' && new Date(t.created_at) >= oneYearAgo)
     .reduce((sum, t) => sum + t.amount, 0)
+
+  // Helper to check if a transaction can be edited/deleted (no stripe_payment_id)
+  const canEditTransaction = (transaction: Transaction) => {
+    return !transaction.stripe_payment_id && transaction.type === 'deposit'
+  }
 
   if (loading) {
     return (
@@ -210,7 +270,7 @@ export default function AdminPaymentsPage() {
             </p>
           </div>
           <Button
-            onClick={() => setIsManualPaymentOpen(true)}
+            onClick={openAddPaymentModal}
             leftIcon={<Banknote className="w-5 h-5" />}
           >
             Record Payment
@@ -261,9 +321,9 @@ export default function AdminPaymentsPage() {
                       }
                       className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
                         selectedStudent === student.id
-                          ? 'bg-primary-100 border-primary-200'
-                          : 'hover:bg-gray-50 hover:translate-x-1'
-                      } border border-transparent dark:hover:bg-gray-900/60 dark:focus-visible:ring-2 dark:focus-visible:ring-primary-500/40`}
+                          ? 'bg-primary-100 border-primary-200 dark:bg-primary-500/20'
+                          : 'hover:bg-gray-50 hover:translate-x-1 dark:hover:bg-gray-900/60'
+                      } border border-transparent`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-100 to-accent-100 flex items-center justify-center">
@@ -331,9 +391,9 @@ export default function AdminPaymentsPage() {
                         transition={{ delay: idx * 0.02 }}
                         className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100 dark:bg-gray-900/50 dark:border-gray-800"
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center ${
                               transaction.type === 'deposit'
                                 ? 'bg-mint-100 dark:bg-mint-500/10'
                                 : transaction.type === 'refund'
@@ -349,8 +409,8 @@ export default function AdminPaymentsPage() {
                               <ArrowUpRight className="w-5 h-5 text-coral-600" />
                             )}
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                               {transaction.description}
                             </p>
                             {transaction.type === 'deposit' && (
@@ -358,7 +418,7 @@ export default function AdminPaymentsPage() {
                                 Paid by{' '}
                                 <span className="font-medium text-gray-700 dark:text-gray-200">
                                   {transaction.student?.parent_name?.trim?.() ||
-                                    transaction.student?.email ||
+                                    transaction.student?.student_name ||
                                     'Unknown'}
                                 </span>
                               </p>
@@ -369,29 +429,54 @@ export default function AdminPaymentsPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p
-                            className={`font-semibold ${
-                              transaction.type === 'lesson_charge'
-                                ? 'text-coral-600'
-                                : 'text-mint-600'
-                            }`}
-                          >
-                            {transaction.type === 'lesson_charge' ? '-' : '+'}
-                            {formatCurrency(Math.abs(transaction.amount))}
-                          </p>
-                          <Badge
-                            variant={
-                              transaction.type === 'deposit'
-                                ? 'success'
-                                : transaction.type === 'refund'
-                                ? 'accent'
-                                : 'danger'
-                            }
-                            size="sm"
-                          >
-                            {transaction.type.replace('_', ' ')}
-                          </Badge>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <div className="text-right">
+                            <p
+                              className={`font-semibold ${
+                                transaction.type === 'lesson_charge'
+                                  ? 'text-coral-600'
+                                  : 'text-mint-600'
+                              }`}
+                            >
+                              {transaction.type === 'lesson_charge' ? '-' : '+'}
+                              {formatCurrency(Math.abs(transaction.amount))}
+                            </p>
+                            <Badge
+                              variant={
+                                transaction.type === 'deposit'
+                                  ? 'success'
+                                  : transaction.type === 'refund'
+                                  ? 'accent'
+                                  : 'danger'
+                              }
+                              size="sm"
+                            >
+                              {transaction.stripe_payment_id ? 'stripe' : transaction.type === 'deposit' ? 'external' : transaction.type.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          
+                          {/* Edit/Delete buttons for external payments */}
+                          {canEditTransaction(transaction) && (
+                            <div className="flex gap-1 ml-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditPaymentModal(transaction)}
+                                title="Edit payment"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeletePayment(transaction)}
+                                title="Delete payment"
+                                className="text-coral-600 hover:bg-coral-50 dark:hover:bg-coral-500/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     ))}
@@ -403,23 +488,28 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
 
-      {/* Manual Payment Modal */}
+      {/* Add/Edit Payment Modal */}
       <Modal
-        isOpen={isManualPaymentOpen}
-        onClose={() => setIsManualPaymentOpen(false)}
-        title="Record Cash Payment"
+        isOpen={isPaymentModalOpen}
+        onClose={() => {
+          setIsPaymentModalOpen(false)
+          setEditingTransaction(null)
+        }}
+        title={editingTransaction ? 'Edit External Payment' : 'Record External Payment'}
         size="md"
       >
-        <form onSubmit={handleAddManualPayment} className="space-y-6">
+        <form onSubmit={handleSubmitPayment} className="space-y-6">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Record a cash or bank transfer payment from a student. This will appear as a regular deposit in their account.
+            {editingTransaction
+              ? 'Update the details of this external payment.'
+              : 'Record a cash or bank transfer payment. This will appear as a deposit in the student\'s account.'}
           </p>
 
           <Select
             label="Student"
-            value={manualPaymentData.studentId}
+            value={paymentData.studentId}
             onChange={(e) =>
-              setManualPaymentData({ ...manualPaymentData, studentId: e.target.value })
+              setPaymentData({ ...paymentData, studentId: e.target.value })
             }
             options={[
               { value: '', label: 'Select a student...' },
@@ -437,9 +527,9 @@ export default function AdminPaymentsPage() {
             min="1"
             step="0.01"
             placeholder="50.00"
-            value={manualPaymentData.amount}
+            value={paymentData.amount}
             onChange={(e) =>
-              setManualPaymentData({ ...manualPaymentData, amount: e.target.value })
+              setPaymentData({ ...paymentData, amount: e.target.value })
             }
             leftIcon={<PoundSterling className="w-4 h-4" />}
             required
@@ -448,9 +538,9 @@ export default function AdminPaymentsPage() {
           <Input
             label="Description (optional)"
             placeholder="Cash payment, bank transfer, etc."
-            value={manualPaymentData.description}
+            value={paymentData.description}
             onChange={(e) =>
-              setManualPaymentData({ ...manualPaymentData, description: e.target.value })
+              setPaymentData({ ...paymentData, description: e.target.value })
             }
           />
 
@@ -459,7 +549,10 @@ export default function AdminPaymentsPage() {
               type="button"
               variant="ghost"
               className="flex-1"
-              onClick={() => setIsManualPaymentOpen(false)}
+              onClick={() => {
+                setIsPaymentModalOpen(false)
+                setEditingTransaction(null)
+              }}
             >
               Cancel
             </Button>
@@ -467,9 +560,9 @@ export default function AdminPaymentsPage() {
               type="submit"
               className="flex-1"
               isLoading={isSubmitting}
-              leftIcon={<Plus className="w-4 h-4" />}
+              leftIcon={editingTransaction ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             >
-              Record Payment
+              {editingTransaction ? 'Update Payment' : 'Record Payment'}
             </Button>
           </div>
         </form>

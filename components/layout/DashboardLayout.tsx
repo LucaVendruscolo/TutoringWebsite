@@ -52,13 +52,13 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#fafafa] dark:bg-gray-950">
+    <div className="min-h-screen flex bg-[#fafafa] dark:bg-gray-950 overflow-x-hidden">
       <Sidebar role={role} />
       
       {/* Main content area */}
-      {/* Mobile: no top padding needed (no hamburger), add bottom padding for bottom nav */}
+      {/* Mobile: add bottom padding for bottom nav, prevent horizontal overflow */}
       {/* Desktop: add left margin to account for the sidebar's offset from edge */}
-      <main className="flex-1 min-w-0 p-4 pb-24 md:p-8 md:pb-8 md:ml-3">
+      <main className="flex-1 min-w-0 w-full p-4 pb-28 md:p-8 md:pb-8 md:ml-3 overflow-x-hidden">
         {/* Password warning - positioned at bottom to avoid toast overlap */}
         <AnimatePresence>
           {showPasswordWarning && (
