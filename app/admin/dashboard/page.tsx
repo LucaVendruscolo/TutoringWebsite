@@ -267,10 +267,10 @@ export default function AdminDashboard() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 dark:from-gray-900/60 dark:to-gray-950/60 dark:border-gray-800"
+                    className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800"
                   >
-                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-accent-100 flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-primary-600" />
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-accent-100 dark:from-primary-500/20 dark:to-accent-500/20 flex items-center justify-center">
+                      <Clock className="w-6 h-6 text-primary-600 dark:text-primary-200" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
