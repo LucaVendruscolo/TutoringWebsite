@@ -7,9 +7,7 @@ import {
   Calendar,
   X,
   RefreshCw,
-  Edit2,
   Trash2,
-  AlertTriangle,
   CheckCircle,
   ArrowLeft,
 } from 'lucide-react'
@@ -18,7 +16,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
-import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
 import { createClient } from '@/lib/supabase/client'
@@ -27,12 +24,10 @@ import {
   formatDate,
   formatTimeInTimezone,
   canCancelLesson,
-  canRescheduleLesson,
   isLessonPast,
 } from '@/lib/utils'
 import type { Lesson, Profile } from '@/lib/types'
 import toast from 'react-hot-toast'
-import { parseISO, format, addMinutes } from 'date-fns'
 import Link from 'next/link'
 
 export default function StudentLessonsPage() {
@@ -41,8 +36,6 @@ export default function StudentLessonsPage() {
   const [loading, setLoading] = useState(true)
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
-  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
-  const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming')
   const supabase = createClient()
@@ -135,46 +128,9 @@ export default function StudentLessonsPage() {
     }
   }
 
-  const handleRescheduleLesson = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedLesson) return
-    setIsSubmitting(true)
-
-    try {
-      const newStartTime = new Date(`${rescheduleData.date}T${rescheduleData.time}:00`)
-      const newEndTime = addMinutes(newStartTime, selectedLesson.duration_minutes)
-
-      await supabase
-        .from('lessons')
-        .update({
-          start_time: newStartTime.toISOString(),
-          end_time: newEndTime.toISOString(),
-        })
-        .eq('id', selectedLesson.id)
-
-      toast.success('Lesson rescheduled!')
-      setIsRescheduleModalOpen(false)
-      setSelectedLesson(null)
-      fetchData()
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to reschedule lesson')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   const openCancelModal = (lesson: Lesson) => {
     setSelectedLesson(lesson)
     setIsCancelModalOpen(true)
-  }
-
-  const openRescheduleModal = (lesson: Lesson) => {
-    setSelectedLesson(lesson)
-    setRescheduleData({
-      date: format(parseISO(lesson.start_time), 'yyyy-MM-dd'),
-      time: format(parseISO(lesson.start_time), 'HH:mm'),
-    })
-    setIsRescheduleModalOpen(true)
   }
 
   if (loading) {
@@ -200,8 +156,8 @@ export default function StudentLessonsPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Lessons</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">My Lessons</h1>
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1">
               View and manage your tutoring sessions
             </p>
           </div>
@@ -232,7 +188,6 @@ export default function StudentLessonsPage() {
             filteredLessons.map((lesson, idx) => {
               const isPast = isLessonPast(lesson.start_time)
               const canCancel = canCancelLesson(lesson.end_time)
-              const canReschedule = canRescheduleLesson(lesson.start_time)
 
               return (
                 <motion.div
@@ -322,28 +277,15 @@ export default function StudentLessonsPage() {
                           {lesson.duration_minutes} min • {formatCurrency(lesson.cost)}
                         </span>
 
-                        {lesson.status !== 'cancelled' && (
-                          <div className="flex gap-2">
-                            {canReschedule && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openRescheduleModal(lesson)}
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                            {canCancel && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openCancelModal(lesson)}
-                                className="text-coral-600 hover:bg-coral-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
+                        {lesson.status !== 'cancelled' && canCancel && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openCancelModal(lesson)}
+                            className="text-coral-600 hover:bg-coral-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -365,7 +307,7 @@ export default function StudentLessonsPage() {
         {selectedLesson && (
           <div className="space-y-6">
             <Alert variant="warning">
-              Are you sure you want to cancel this lesson? Cancelled lessons won’t be counted against your balance.
+              Are you sure you want to cancel this lesson? Cancelled lessons won't be counted against your balance.
             </Alert>
 
             <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800">
@@ -402,56 +344,6 @@ export default function StudentLessonsPage() {
           </div>
         )}
       </Modal>
-
-      {/* Reschedule Modal */}
-      <Modal
-        isOpen={isRescheduleModalOpen}
-        onClose={() => setIsRescheduleModalOpen(false)}
-        title="Reschedule Lesson"
-        size="md"
-      >
-        <form onSubmit={handleRescheduleLesson} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="New Date"
-              type="date"
-              value={rescheduleData.date}
-              onChange={(e) =>
-                setRescheduleData({ ...rescheduleData, date: e.target.value })
-              }
-              required
-            />
-            <Input
-              label="New Time"
-              type="time"
-              value={rescheduleData.time}
-              onChange={(e) =>
-                setRescheduleData({ ...rescheduleData, time: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <Alert variant="info">
-            Note: Your tutor will be notified of this change. Please ensure the new time works for both of you.
-          </Alert>
-
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex-1"
-              onClick={() => setIsRescheduleModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="flex-1" isLoading={isSubmitting}>
-              Reschedule
-            </Button>
-          </div>
-        </form>
-      </Modal>
     </DashboardLayout>
   )
 }
-

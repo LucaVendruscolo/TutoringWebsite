@@ -135,17 +135,13 @@ export function Calendar({
               {/* Lesson indicators */}
               {showLessons && dayLessons.length > 0 && (
                 <>
-                  {/* Mobile: just show dots */}
-                  <div className="flex flex-wrap gap-1 sm:hidden">
+                  {/* Mobile: just show dots (not clickable - tap cell to see lessons) */}
+                  <div className="flex flex-wrap gap-1 sm:hidden pointer-events-none">
                     {dayLessons.slice(0, 3).map((lesson) => (
                       <div
                         key={lesson.id}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onLessonClick?.(lesson)
-                        }}
                         className={cn(
-                          'w-2 h-2 rounded-full cursor-pointer',
+                          'w-2 h-2 rounded-full',
                           lesson.status === 'cancelled'
                             ? 'bg-gray-300 dark:bg-gray-600'
                             : lesson.status === 'completed'

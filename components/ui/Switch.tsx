@@ -25,8 +25,8 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-        checked ? 'bg-primary-500' : 'bg-gray-200',
+        'relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 ease-in-out',
+        checked ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600',
         'focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         'dark:focus:ring-offset-gray-900',
@@ -36,8 +36,8 @@ export function Switch({
     >
       <span
         className={cn(
-          'inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow',
-          checked ? 'translate-x-5' : 'translate-x-0.5'
+          'inline-block h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out',
+          checked ? 'translate-x-6' : 'translate-x-1'
         )}
       />
     </button>

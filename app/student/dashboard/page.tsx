@@ -232,10 +232,10 @@ export default function StudentDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome, {profile?.student_name || 'Student'}! 👋
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Welcome, {profile?.parent_name?.trim() || profile?.student_name || 'there'}! 👋
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1">
             Here's an overview of your tutoring sessions
           </p>
         </div>

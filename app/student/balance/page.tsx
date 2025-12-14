@@ -317,7 +317,7 @@ export default function StudentBalancePage() {
                       </div>
                     </div>
                     <span
-                      className={`font-semibold ${
+                      className={`font-semibold whitespace-nowrap ${
                         transaction.type === 'lesson_charge'
                           ? 'text-coral-600'
                           : 'text-mint-600'
