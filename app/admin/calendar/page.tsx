@@ -551,7 +551,7 @@ export default function AdminCalendarPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Date"
               type="date"
@@ -567,25 +567,27 @@ export default function AdminCalendarPage() {
             />
           </div>
 
-          <Select
-            label="Duration"
-            value={formData.duration}
-            onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-            options={LESSON_DURATIONS}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Duration"
+              value={formData.duration}
+              onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+              options={LESSON_DURATIONS}
+            />
 
-          <Input
-            label="Cost (£)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.cost}
-            onChange={(e) => {
-              setCostTouched(true)
-              setFormData({ ...formData, cost: e.target.value })
-            }}
-            placeholder="Auto-calculated"
-          />
+            <Input
+              label="Cost (£)"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.cost}
+              onChange={(e) => {
+                setCostTouched(true)
+                setFormData({ ...formData, cost: e.target.value })
+              }}
+              placeholder="Auto-calculated"
+            />
+          </div>
 
           <div className="flex items-center gap-3">
             <input
@@ -593,9 +595,9 @@ export default function AdminCalendarPage() {
               id="isRecurring"
               checked={formData.isRecurring}
               onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
-              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
-            <label htmlFor="isRecurring" className="text-sm text-gray-700">
+            <label htmlFor="isRecurring" className="text-sm text-gray-700 dark:text-gray-300">
               Recurring weekly (creates 52 lessons for 1 year)
             </label>
           </div>
@@ -663,29 +665,29 @@ export default function AdminCalendarPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Date</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs sm:text-sm text-gray-500">Date</p>
+                  <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
                     {formatDate(selectedLesson.start_time, 'EEE, MMM d, yyyy')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Time</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs sm:text-sm text-gray-500">Time</p>
+                  <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
                     {formatTimeInTimezone(selectedLesson.start_time, 'Europe/London')} -{' '}
                     {formatTimeInTimezone(selectedLesson.end_time, 'Europe/London')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Duration</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs sm:text-sm text-gray-500">Duration</p>
+                  <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
                     {selectedLesson.duration_minutes} minutes
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Cost</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-xs sm:text-sm text-gray-500">Cost</p>
+                  <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
                     {formatCurrency(selectedLesson.cost)}
                   </p>
                 </div>
@@ -784,7 +786,7 @@ export default function AdminCalendarPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Date"
               type="date"
@@ -800,25 +802,27 @@ export default function AdminCalendarPage() {
             />
           </div>
 
-          <Select
-            label="Duration"
-            value={formData.duration}
-            onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-            options={LESSON_DURATIONS}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Duration"
+              value={formData.duration}
+              onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+              options={LESSON_DURATIONS}
+            />
 
-          <Input
-            label="Cost (£)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.cost}
-            onChange={(e) => {
-              setCostTouched(true)
-              setFormData({ ...formData, cost: e.target.value })
-            }}
-            placeholder="Auto-calculated"
-          />
+            <Input
+              label="Cost (£)"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.cost}
+              onChange={(e) => {
+                setCostTouched(true)
+                setFormData({ ...formData, cost: e.target.value })
+              }}
+              placeholder="Auto-calculated"
+            />
+          </div>
 
           <Input
             label="Notes (optional)"
@@ -826,7 +830,7 @@ export default function AdminCalendarPage() {
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           />
 
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
             <Button
               type="button"
               variant="ghost"
@@ -834,10 +838,11 @@ export default function AdminCalendarPage() {
                 setIsEditModalOpen(false)
                 setDoubleBookingWarning(null)
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isSubmitting}>
+            <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto">
               Update Lesson
             </Button>
           </div>

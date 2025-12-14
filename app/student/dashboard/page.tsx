@@ -241,7 +241,7 @@ export default function StudentDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           <StatCard
             title="Current Balance"
             value={formatCurrency(stats?.balance || 0)}
@@ -267,7 +267,7 @@ export default function StudentDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           <Link href="/student/calendar">
             <Card hover className="cursor-pointer">
               <div className="flex items-center gap-4">

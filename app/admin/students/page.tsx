@@ -530,7 +530,7 @@ export default function StudentsPage() {
             leftIcon={<Mail className="w-5 h-5" />}
             required
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Parent Name"
               value={formData.parentName}
@@ -546,7 +546,7 @@ export default function StudentsPage() {
               placeholder="Optional"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Cost Per Hour (£)"
               type="number"
@@ -595,7 +595,7 @@ export default function StudentsPage() {
             disabled
             leftIcon={<Mail className="w-5 h-5" />}
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Parent Name"
               value={formData.parentName}
@@ -611,7 +611,7 @@ export default function StudentsPage() {
               placeholder="Optional"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Cost Per Hour (£)"
               type="number"

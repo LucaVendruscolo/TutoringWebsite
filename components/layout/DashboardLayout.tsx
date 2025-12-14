@@ -55,9 +55,9 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       <Sidebar role={role} />
       
       {/* Main content area */}
-      {/* Desktop: add left margin to account for the fixed sidebar width (240px + 12px offset + 12px gap) */}
-      <main className="ml-[264px]">
-        <div className="p-8">
+      {/* Mobile: full width with top padding for header, Desktop: add left margin for sidebar */}
+      <main className="pt-20 lg:pt-0 lg:ml-[264px]">
+        <div className="p-4 sm:p-6 lg:p-8">
           {/* Password warning */}
           <AnimatePresence>
             {showPasswordWarning && (
@@ -65,7 +65,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-5 right-5 z-40 max-w-sm"
+                className="fixed bottom-5 right-5 left-5 sm:left-auto z-40 max-w-sm"
               >
                 <Alert
                   variant="warning"
