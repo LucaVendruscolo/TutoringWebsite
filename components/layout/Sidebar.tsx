@@ -52,48 +52,22 @@ export function Sidebar({ role }: SidebarProps) {
   const supabase = createClient()
 
   // Hide bottom nav when keyboard is open (input focused)
-  // Uses simple focus detection for cross-browser compatibility
   useEffect(() => {
     const handleFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/b3a42928-208c-482b-995c-b1005f848ce1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Sidebar.tsx:focusIn',message:'Focus IN triggered',data:{tagName:target.tagName,htmlOverflow:document.documentElement.style.overflow,bodyOverflow:document.body.style.overflow,scrollY:window.scrollY,innerHeight:window.innerHeight,bodyScrollHeight:document.body.scrollHeight},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3'})}).catch(()=>{});
-        // #endregion
         setIsKeyboardOpen(true)
       }
     }
 
     const handleFocusOut = () => {
-      // Delay to prevent flicker when moving between inputs
       setTimeout(() => {
         const activeEl = document.activeElement
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/b3a42928-208c-482b-995c-b1005f848ce1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Sidebar.tsx:focusOut',message:'Focus OUT triggered',data:{activeElTag:activeEl?.tagName,willResetKeyboard:activeEl?.tagName !== 'INPUT' && activeEl?.tagName !== 'TEXTAREA' && activeEl?.tagName !== 'SELECT',scrollY:window.scrollY,bodyHeight:document.body.style.height},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2,H3'})}).catch(()=>{});
-        // #endregion
         if (activeEl?.tagName !== 'INPUT' && activeEl?.tagName !== 'TEXTAREA' && activeEl?.tagName !== 'SELECT') {
           setIsKeyboardOpen(false)
-          // Force scroll reset to fix Chrome mobile viewport bug
-          // This prevents the "extra scroll space" issue after keyboard dismisses
-          window.scrollTo(0, window.scrollY)
-          // Also reset body scroll position
-          document.body.style.height = '100%'
-          requestAnimationFrame(() => {
-            document.body.style.height = ''
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/b3a42928-208c-482b-995c-b1005f848ce1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Sidebar.tsx:afterReset',message:'After body height reset',data:{bodyHeight:document.body.style.height,scrollY:window.scrollY,canScroll:document.body.scrollHeight > window.innerHeight},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-            // #endregion
-          })
         }
-      }, 150)
+      }, 100)
     }
-
-    // #region agent log
-    const handleScroll = () => {
-      fetch('http://127.0.0.1:7243/ingest/b3a42928-208c-482b-995c-b1005f848ce1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Sidebar.tsx:scroll',message:'Scroll event',data:{scrollY:window.scrollY,innerHeight:window.innerHeight,scrollHeight:document.body.scrollHeight,maxScroll:document.body.scrollHeight - window.innerHeight},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4,H5'})}).catch(()=>{});
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    // #endregion
 
     document.addEventListener('focusin', handleFocusIn)
     document.addEventListener('focusout', handleFocusOut)
@@ -101,9 +75,6 @@ export function Sidebar({ role }: SidebarProps) {
     return () => {
       document.removeEventListener('focusin', handleFocusIn)
       document.removeEventListener('focusout', handleFocusOut)
-      // #region agent log
-      window.removeEventListener('scroll', handleScroll)
-      // #endregion
     }
   }, [])
 

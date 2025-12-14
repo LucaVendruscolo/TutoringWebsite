@@ -20,23 +20,15 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* Prevent pull-to-refresh and overscroll */
-  overscroll-behavior: none;
-  overflow: hidden;
-  height: 100%;
 }
 
 body {
   font-family: var(--font-inter);
   background: #fafafa;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
   color: #1d1d1f;
   letter-spacing: -0.01em;
-  /* Prevent overscroll bounce */
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 html.dark body {
