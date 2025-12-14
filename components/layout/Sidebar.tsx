@@ -63,7 +63,7 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Mobile menu button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-40 p-2.5 rounded-full bg-white dark:bg-gray-900 shadow-soft md:hidden"
+        className="fixed top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] z-40 p-2.5 rounded-full bg-white dark:bg-gray-900 shadow-soft md:hidden"
       >
         <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
@@ -86,14 +86,14 @@ export function Sidebar({ role }: SidebarProps) {
       <aside
         className={cn(
           // Mobile: drawer (not full width). Desktop: fixed-width sidebar.
-          'fixed top-0 left-0 z-50 h-full w-[85vw] max-w-[320px] md:w-[260px]',
-          'bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-100 dark:border-gray-800 shadow-soft-lg',
+          'fixed top-0 left-0 z-50 h-full w-[78vw] max-w-[280px] md:w-[260px]',
+          'bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-100 dark:border-gray-800 shadow-soft-lg rounded-r-3xl md:rounded-none',
           'transition-transform duration-300 ease-out',
           isOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none',
           'md:translate-x-0 md:relative md:flex-shrink-0 md:pointer-events-auto'
         )}
       >
-        <div className="flex flex-col h-full p-5">
+        <div className="flex flex-col h-full p-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {/* Logo */}
           <div className="flex items-center justify-between mb-8 px-2">
             <Link href={role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}>
