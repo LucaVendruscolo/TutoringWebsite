@@ -35,6 +35,7 @@ import {
   TIMEZONES,
   LESSON_DURATIONS,
   TIME_SLOTS,
+  cn,
 } from '@/lib/utils'
 import type { Lesson, Profile } from '@/lib/types'
 import toast from 'react-hot-toast'
