@@ -157,64 +157,70 @@ export function Sidebar({ role }: SidebarProps) {
 
       {/* ========== MOBILE BOTTOM NAVIGATION ========== */}
       {/* Hidden when keyboard is open to prevent layout issues */}
-      <nav
+      {/* Wrapper div positions at bottom and includes extra height for Chrome address bar */}
+      <div
         className={cn(
           'lg:hidden fixed left-0 right-0 z-50',
-          'bg-white dark:bg-gray-900',
-          'border-t border-gray-200/50 dark:border-gray-700/50',
           'transition-transform duration-200',
           isKeyboardOpen ? 'translate-y-full' : ''
         )}
-        style={{ 
-          bottom: 0,
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)'
-        }}
+        style={{ bottom: 0 }}
       >
-        <div className="flex items-center justify-around px-2 h-16">
-          {bottomNavLinks.map((link) => {
-            const isActive = pathname === link.href
-            const Icon = link.icon
+        <nav
+          className={cn(
+            'bg-white dark:bg-gray-900',
+            'border-t border-gray-200/50 dark:border-gray-700/50'
+          )}
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
+          <div className="flex items-center justify-around px-2 h-16">
+            {bottomNavLinks.map((link) => {
+              const isActive = pathname === link.href
+              const Icon = link.icon
 
-            return (
-              <Link key={link.href} href={link.href} className="flex-1">
-                <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className={cn(
-                    'flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors',
-                    isActive
-                      ? 'text-primary-600 dark:text-primary-400'
-                      : 'text-gray-500 dark:text-gray-400'
-                  )}
-                >
-                  <Icon className={cn('w-6 h-6', isActive && 'stroke-[2.5px]')} />
-                  <span className={cn('text-[10px] mt-1 font-medium', isActive && 'font-semibold')}>
-                    {link.label}
-                  </span>
-                </motion.div>
-              </Link>
-            )
-          })}
+              return (
+                <Link key={link.href} href={link.href} className="flex-1">
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    className={cn(
+                      'flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors',
+                      isActive
+                        ? 'text-primary-600 dark:text-primary-400'
+                        : 'text-gray-500 dark:text-gray-400'
+                    )}
+                  >
+                    <Icon className={cn('w-6 h-6', isActive && 'stroke-[2.5px]')} />
+                    <span className={cn('text-[10px] mt-1 font-medium', isActive && 'font-semibold')}>
+                      {link.label}
+                    </span>
+                  </motion.div>
+                </Link>
+              )
+            })}
 
-          {/* More button */}
-          <button
-            onClick={() => setIsMoreOpen(true)}
-            className="flex-1"
-          >
-            <motion.div
-              whileTap={{ scale: 0.9 }}
-              className={cn(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors',
-                isMoreOpen
-                  ? 'text-primary-600 dark:text-primary-400'
-                  : 'text-gray-500 dark:text-gray-400'
-              )}
+            {/* More button */}
+            <button
+              onClick={() => setIsMoreOpen(true)}
+              className="flex-1"
             >
-              <MoreHorizontal className="w-6 h-6" />
-              <span className="text-[10px] mt-1 font-medium">More</span>
-            </motion.div>
-          </button>
-        </div>
-      </nav>
+              <motion.div
+                whileTap={{ scale: 0.9 }}
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors',
+                  isMoreOpen
+                    ? 'text-primary-600 dark:text-primary-400'
+                    : 'text-gray-500 dark:text-gray-400'
+                )}
+              >
+                <MoreHorizontal className="w-6 h-6" />
+                <span className="text-[10px] mt-1 font-medium">More</span>
+              </motion.div>
+            </button>
+          </div>
+        </nav>
+        {/* Extra background to fill gap when Chrome hides address bar (viewport expands ~100px) */}
+        <div className="h-24 bg-white dark:bg-gray-900" />
+      </div>
 
       {/* ========== MOBILE "MORE" BOTTOM SHEET ========== */}
       <AnimatePresence>
