@@ -251,6 +251,13 @@ html.dark .bg-abstract::after {
   font-size: 16px;
 }
 
+/* Hide native browser password toggle icons (Edge, Chrome, etc.) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
 @media (min-width: 640px) {
   .input {
     font-size: 14px;

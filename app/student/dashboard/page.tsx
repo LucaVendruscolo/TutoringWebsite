@@ -233,7 +233,7 @@ export default function StudentDashboard() {
         {/* Header */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome, {profile?.parent_name?.trim() || profile?.student_name || 'there'}! 👋
+            Welcome{profile?.parent_name?.trim() ? ` ${profile.parent_name.trim()}` : ''}{profile?.student_name?.trim() ? ` and ${profile.student_name.trim()}` : ''}! 👋
           </h1>
           <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1">
             Here's an overview of your tutoring sessions
