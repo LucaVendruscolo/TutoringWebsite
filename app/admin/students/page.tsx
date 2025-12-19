@@ -16,6 +16,8 @@ import {
   ArrowLeft,
   UserMinus,
   UserCheck,
+  UserPlus,
+  Users,
 } from 'lucide-react'
 import Link from 'next/link'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -43,6 +45,7 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Profile | null>(null)
   const [newCredentials, setNewCredentials] = useState<{ email: string; password: string } | null>(null)
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [addingChildFor, setAddingChildFor] = useState<Profile | null>(null) // Track which parent we're adding a child for
   const supabase = createClient()
 
   // Form state
@@ -120,6 +123,15 @@ export default function StudentsPage() {
   const activeStudents = filteredStudents.filter((s) => s.is_active !== false)
   const inactiveStudents = filteredStudents.filter((s) => s.is_active === false)
 
+  // Get siblings for a student (same parent name)
+  const getSiblings = (student: Profile) => {
+    if (!student.parent_name) return []
+    return students.filter(
+      s => s.id !== student.id && 
+           s.parent_name?.toLowerCase() === student.parent_name?.toLowerCase()
+    )
+  }
+
   const handleToggleActive = async (student: Profile) => {
     const newStatus = !student.is_active
     
@@ -137,19 +149,53 @@ export default function StudentsPage() {
     fetchStudents()
   }
 
+  // Generate email for a child account based on parent email
+  const generateChildEmail = (parentEmail: string, childName: string) => {
+    const [localPart, domain] = parentEmail.split('@')
+    // Remove any existing +suffix
+    const baseLocal = localPart.split('+')[0]
+    // Create a safe suffix from child name
+    const safeName = childName.toLowerCase().replace(/[^a-z0-9]/g, '')
+    return `${baseLocal}+${safeName}@${domain}`
+  }
+
+  // Open modal to add a child for existing parent
+  const openAddChildModal = (parent: Profile) => {
+    setAddingChildFor(parent)
+    setFormData({
+      email: '', // Will be auto-generated
+      parentName: parent.parent_name,
+      studentName: '',
+      costPerHour: parent.cost_per_hour.toString(),
+      timezone: parent.timezone,
+    })
+    setIsAddModalOpen(true)
+  }
+
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
       const tempPassword = generateTempPassword()
+      
+      // If adding a child, generate email from parent email + child name
+      let emailToUse = formData.email
+      if (addingChildFor && !formData.email) {
+        if (!formData.studentName) {
+          toast.error('Please enter the child\'s name')
+          setIsSubmitting(false)
+          return
+        }
+        emailToUse = generateChildEmail(addingChildFor.email, formData.studentName)
+      }
 
       // Create user via API route (needs admin privileges)
       const response = await fetch('/api/admin/create-student', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email,
+          email: emailToUse,
           password: tempPassword,
           parentName: formData.parentName,
           studentName: formData.studentName,
@@ -165,11 +211,12 @@ export default function StudentsPage() {
       }
 
       setNewCredentials({
-        email: formData.email,
+        email: emailToUse,
         password: tempPassword,
       })
 
       setIsAddModalOpen(false)
+      setAddingChildFor(null)
       setIsCredentialsModalOpen(true)
       setFormData({
         email: '',
@@ -179,7 +226,7 @@ export default function StudentsPage() {
         timezone: 'Europe/London',
       })
       fetchStudents()
-      toast.success('Student created successfully!')
+      toast.success(addingChildFor ? 'Child account created!' : 'Student created successfully!')
     } catch (error: any) {
       toast.error(error.message || 'Failed to create student')
     } finally {
@@ -288,6 +335,7 @@ export default function StudentsPage() {
           </div>
           <Button
             onClick={() => {
+              setAddingChildFor(null)
               setFormData({
                 email: '',
                 parentName: '',
@@ -351,6 +399,11 @@ export default function StudentsPage() {
                           {student.parent_name && (
                             <p className="text-sm text-gray-500">
                               Parent: {student.parent_name}
+                              {getSiblings(student).length > 0 && (
+                                <span className="ml-2 text-primary-600">
+                                  ({getSiblings(student).length} sibling{getSiblings(student).length > 1 ? 's' : ''}: {getSiblings(student).map(s => s.student_name).join(', ')})
+                                </span>
+                              )}
                             </p>
                           )}
                           <p className="text-sm text-gray-400">{student.email}</p>
@@ -382,6 +435,15 @@ export default function StudentsPage() {
                           {student.password_changed ? 'Active' : 'Temp Password'}
                         </Badge>
                         <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openAddChildModal(student)}
+                            title="Add another child for this parent"
+                            className="text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -516,20 +578,43 @@ export default function StudentsPage() {
       {/* Add Student Modal */}
       <Modal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Add New Student"
-        description="Create a new student account"
+        onClose={() => {
+          setIsAddModalOpen(false)
+          setAddingChildFor(null)
+        }}
+        title={addingChildFor ? `Add Child for ${addingChildFor.parent_name}` : "Add New Student"}
+        description={addingChildFor 
+          ? `Add another child to ${addingChildFor.parent_name}'s family. They will have their own lessons and balance.`
+          : "Create a new student account"
+        }
         size="lg"
       >
         <form onSubmit={handleAddStudent} className="space-y-6">
-          <Input
-            label="Email Address"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            leftIcon={<Mail className="w-5 h-5" />}
-            required
-          />
+          {addingChildFor ? (
+            // Adding child - show info box and auto-generate email
+            <div className="p-4 rounded-xl bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <Users className="w-5 h-5 text-primary-600 dark:text-primary-300" />
+                <span className="font-medium text-primary-800 dark:text-primary-200">Adding sibling</span>
+              </div>
+              <p className="text-sm text-primary-700 dark:text-primary-300">
+                Parent: <strong>{addingChildFor.parent_name}</strong><br />
+                Existing child: <strong>{addingChildFor.student_name}</strong><br />
+                Email will be auto-generated from parent's email.
+              </p>
+            </div>
+          ) : (
+            // New student - require email
+            <Input
+              label="Email Address"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              leftIcon={<Mail className="w-5 h-5" />}
+              required
+            />
+          )}
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Parent Name"
@@ -537,13 +622,15 @@ export default function StudentsPage() {
               onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
               leftIcon={<User className="w-5 h-5" />}
               placeholder="Optional"
+              disabled={!!addingChildFor}
             />
             <Input
-              label="Student Name"
+              label={addingChildFor ? "Child's Name" : "Student Name"}
               value={formData.studentName}
               onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
               leftIcon={<User className="w-5 h-5" />}
-              placeholder="Optional"
+              placeholder={addingChildFor ? "Enter child's name" : "Optional"}
+              required={!!addingChildFor}
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -564,16 +651,31 @@ export default function StudentsPage() {
               options={TIMEZONES}
             />
           </div>
+          
+          {addingChildFor && formData.studentName && (
+            <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Generated email:</span>{' '}
+                <code className="text-primary-600 dark:text-primary-300">
+                  {generateChildEmail(addingChildFor.email, formData.studentName)}
+                </code>
+              </p>
+            </div>
+          )}
+          
           <div className="flex justify-end gap-3">
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setIsAddModalOpen(false)}
+              onClick={() => {
+                setIsAddModalOpen(false)
+                setAddingChildFor(null)
+              }}
             >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isSubmitting}>
-              Create Student
+            <Button type="submit" isLoading={isSubmitting} leftIcon={addingChildFor ? <UserPlus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}>
+              {addingChildFor ? 'Add Child' : 'Create Student'}
             </Button>
           </div>
         </form>
