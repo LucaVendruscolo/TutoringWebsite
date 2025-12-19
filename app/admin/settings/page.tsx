@@ -44,7 +44,9 @@ export default function AdminSettingsPage() {
   const openInGoogleCalendar = () => {
     const url = getCalendarUrl()
     if (!url) return
-    const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(url)}`
+    // Google Calendar requires webcal:// protocol for subscription
+    const webcalUrl = url.replace('https://', 'webcal://').replace('http://', 'webcal://')
+    const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}`
     window.open(googleUrl, '_blank')
   }
 
