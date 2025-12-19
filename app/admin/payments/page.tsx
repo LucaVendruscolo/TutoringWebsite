@@ -233,7 +233,7 @@ export default function AdminPaymentsPage() {
     }
 
     try {
-      // First verify this is a deletable transaction
+      // First verify this is a deletable transaction (client-side check)
       if (transaction.stripe_payment_id) {
         toast.error('Cannot delete Stripe payments. Please refund through Stripe dashboard.')
         return
@@ -244,15 +244,17 @@ export default function AdminPaymentsPage() {
         return
       }
 
-      const { error, count } = await supabase
-        .from('transactions')
-        .delete()
-        .eq('id', transaction.id)
-        .select()
+      // Use API route to delete (bypasses RLS)
+      const response = await fetch('/api/admin/delete-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactionId: transaction.id }),
+      })
 
-      if (error) {
-        console.error('Delete error:', error)
-        throw error
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete payment')
       }
 
       toast.success('Payment deleted successfully')
@@ -262,7 +264,7 @@ export default function AdminPaymentsPage() {
       await fetchData()
     } catch (error: any) {
       console.error('Delete payment failed:', error)
-      toast.error(error.message || 'Failed to delete payment. Check console for details.')
+      toast.error(error.message || 'Failed to delete payment')
     }
   }
 
