@@ -173,7 +173,8 @@ export function Calendar({
                             : 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-200'
                         )}
                       >
-                        {lesson.student?.student_name || format(parseISO(lesson.start_time), 'HH:mm')}
+                        {/* Extract child name from lesson title, fallback to student_name */}
+                        {lesson.title?.match(/Tutoring Session with (.+)/)?.[1] || lesson.student?.student_name || format(parseISO(lesson.start_time), 'HH:mm')}
                       </div>
                     ))}
                     {dayLessons.length > 6 && (

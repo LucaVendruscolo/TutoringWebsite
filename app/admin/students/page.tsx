@@ -536,16 +536,19 @@ export default function StudentsPage() {
               value={formData.parentName}
               onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
               leftIcon={<User className="w-5 h-5" />}
-              placeholder="Optional"
+              placeholder="e.g. Sarah"
             />
             <Input
-              label="Student Name"
+              label="Children Names"
               value={formData.studentName}
               onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
               leftIcon={<User className="w-5 h-5" />}
-              placeholder="Optional"
+              placeholder="e.g. Harrison, Emily"
             />
           </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
+            For multiple children, separate names with commas. They share the same balance.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Cost Per Hour (£)"
@@ -601,16 +604,19 @@ export default function StudentsPage() {
               value={formData.parentName}
               onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
               leftIcon={<User className="w-5 h-5" />}
-              placeholder="Optional"
+              placeholder="e.g. Sarah"
             />
             <Input
-              label="Student Name"
+              label="Children Names"
               value={formData.studentName}
               onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
               leftIcon={<User className="w-5 h-5" />}
-              placeholder="Optional"
+              placeholder="e.g. Harrison, Emily"
             />
           </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
+            For multiple children, separate names with commas. They share the same balance.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Cost Per Hour (£)"

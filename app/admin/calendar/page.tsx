@@ -72,6 +72,7 @@ export default function AdminCalendarPage() {
   // Form state
   const [formData, setFormData] = useState({
     studentId: '',
+    childName: '', // Selected child when parent has multiple children
     date: format(new Date(), 'yyyy-MM-dd'),
     time: '09:00',
     duration: 60,
@@ -81,6 +82,17 @@ export default function AdminCalendarPage() {
   })
   const [costTouched, setCostTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Helper to get children names from a student (comma-separated in student_name field)
+  const getChildrenNames = (student: Profile): string[] => {
+    if (!student.student_name) return []
+    return student.student_name.split(',').map(name => name.trim()).filter(name => name.length > 0)
+  }
+
+  // Get selected student's children
+  const selectedStudent = students.find(s => s.id === formData.studentId)
+  const childrenNames = selectedStudent ? getChildrenNames(selectedStudent) : []
+  const hasMultipleChildren = childrenNames.length > 1
 
   const fetchData = async () => {
     // Fetch lessons with student data
@@ -176,9 +188,12 @@ export default function AdminCalendarPage() {
           const lessonStart = addWeeks(startTime, i)
           const lessonEnd = addWeeks(endTime, i)
 
+          // Use selected child name if multiple children, otherwise use first/only child name
+          const childName = formData.childName || childrenNames[0] || student.student_name
+          
           lessonsToCreate.push({
             student_id: formData.studentId,
-            title: `Tutoring Session with ${student.student_name}`,
+            title: `Tutoring Session with ${childName}`,
             start_time: lessonStart.toISOString(),
             end_time: lessonEnd.toISOString(),
             duration_minutes: formData.duration,
@@ -195,9 +210,12 @@ export default function AdminCalendarPage() {
         toast.success('Recurring lessons created for 1 year!')
         await syncBalance(formData.studentId)
       } else {
+        // Use selected child name if multiple children, otherwise use first/only child name
+        const childName = formData.childName || childrenNames[0] || student.student_name
+        
         const { error } = await supabase.from('lessons').insert({
           student_id: formData.studentId,
-          title: `Tutoring Session with ${student.student_name}`,
+          title: `Tutoring Session with ${childName}`,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
           duration_minutes: formData.duration,
@@ -214,6 +232,7 @@ export default function AdminCalendarPage() {
       setIsAddModalOpen(false)
       setFormData({
         studentId: '',
+        childName: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         time: '09:00',
         duration: 60,
@@ -389,10 +408,14 @@ export default function AdminCalendarPage() {
         return
       }
 
+      // Use selected child name if multiple children, otherwise use first/only child name
+      const childName = formData.childName || childrenNames[0] || student.student_name
+      
       const { error } = await supabase
         .from('lessons')
         .update({
           student_id: formData.studentId,
+          title: `Tutoring Session with ${childName}`,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
           duration_minutes: formData.duration,
@@ -427,8 +450,13 @@ export default function AdminCalendarPage() {
     setSelectedLesson(lesson)
     // Get the date and time in the current viewTimezone
     const { date, time } = getDateTimeInTimezone(lesson.start_time, viewTimezone)
+    // Extract child name from lesson title if it exists
+    const titleMatch = lesson.title?.match(/Tutoring Session with (.+)/)
+    const lessonChildName = titleMatch ? titleMatch[1] : ''
+    
     setFormData({
       studentId: lesson.student_id,
+      childName: lessonChildName,
       date,
       time,
       duration: lesson.duration_minutes,
@@ -479,6 +507,7 @@ export default function AdminCalendarPage() {
               onClick={() => {
                 setFormData({
                   studentId: '',
+                  childName: '',
                   date: format(selectedDate, 'yyyy-MM-dd'),
                   time: '09:00',
                   duration: 60,
@@ -573,7 +602,8 @@ export default function AdminCalendarPage() {
                                     : 'text-gray-900 dark:text-gray-100'
                                 }`}
                               >
-                                {lesson.student?.student_name}
+                                {/* Show child name from title */}
+                                {lesson.title?.match(/Tutoring Session with (.+)/)?.[1] || lesson.student?.student_name}
                               </p>
                               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                                 {formatTimeInTimezone(lesson.start_time, viewTimezone)} -{' '}
@@ -642,16 +672,31 @@ export default function AdminCalendarPage() {
           )}
 
           <Select
-            label="Student"
+            label="Parent Account"
             value={formData.studentId}
-            onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, studentId: e.target.value, childName: '' })}
             options={students.map((s) => ({
               value: s.id,
-              label: `${s.student_name} (${formatCurrency(s.cost_per_hour)}/hr)`,
+              label: `${s.parent_name || s.student_name} - ${s.student_name} (${formatCurrency(s.cost_per_hour)}/hr)`,
             }))}
-            placeholder="Select a student"
+            placeholder="Select a parent/student"
             required
           />
+
+          {/* Show child selector if parent has multiple children */}
+          {hasMultipleChildren && (
+            <Select
+              label="Which Child?"
+              value={formData.childName}
+              onChange={(e) => setFormData({ ...formData, childName: e.target.value })}
+              options={childrenNames.map((name) => ({
+                value: name,
+                label: name,
+              }))}
+              placeholder="Select a child"
+              required
+            />
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
@@ -759,10 +804,11 @@ export default function AdminCalendarPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">
-                    {selectedLesson.student?.student_name}
+                    {/* Show child name from title */}
+                    {selectedLesson.title?.match(/Tutoring Session with (.+)/)?.[1] || selectedLesson.student?.student_name}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {selectedLesson.student?.parent_name}
+                    Parent: {selectedLesson.student?.parent_name}
                   </p>
                 </div>
               </div>
@@ -890,15 +936,29 @@ export default function AdminCalendarPage() {
           )}
 
           <Select
-            label="Student"
+            label="Parent Account"
             value={formData.studentId}
-            onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, studentId: e.target.value, childName: '' })}
             options={students.map((s) => ({
               value: s.id,
-              label: `${s.student_name} (${formatCurrency(s.cost_per_hour)}/hr)`,
+              label: `${s.parent_name || s.student_name} - ${s.student_name} (${formatCurrency(s.cost_per_hour)}/hr)`,
             }))}
             required
           />
+
+          {/* Show child selector if parent has multiple children */}
+          {hasMultipleChildren && (
+            <Select
+              label="Which Child?"
+              value={formData.childName}
+              onChange={(e) => setFormData({ ...formData, childName: e.target.value })}
+              options={childrenNames.map((name) => ({
+                value: name,
+                label: name,
+              }))}
+              placeholder="Select a child"
+            />
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
