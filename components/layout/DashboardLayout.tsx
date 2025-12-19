@@ -1,12 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Sidebar } from './Sidebar'
-import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
 import { createClient } from '@/lib/supabase/client'
-import type { Profile } from '@/lib/types'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -14,33 +12,16 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
-  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showPasswordWarning, setShowPasswordWarning] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-
-        if (profile) {
-          setProfile(profile)
-          if (!profile.password_changed && role === 'student') {
-            setShowPasswordWarning(true)
-          }
-        }
-      }
+    const checkAuth = async () => {
+      await supabase.auth.getUser()
       setLoading(false)
     }
-
-    fetchProfile()
-  }, [supabase, role])
+    checkAuth()
+  }, [supabase])
 
   if (loading) {
     return (
@@ -58,26 +39,6 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       {/* Mobile: full width with top padding for header, Desktop: add left margin for sidebar */}
       <main className="pt-20 lg:pt-0 lg:ml-[264px]">
         <div className="p-4 sm:p-6 lg:p-8">
-          {/* Password warning */}
-          <AnimatePresence>
-            {showPasswordWarning && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-5 right-5 left-5 sm:left-auto z-40 max-w-sm"
-              >
-                <Alert
-                  variant="warning"
-                  title="Password Not Changed"
-                  onClose={() => setShowPasswordWarning(false)}
-                >
-                  You're still using a temporary password. Please change it in Settings for security.
-                </Alert>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Page content */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}

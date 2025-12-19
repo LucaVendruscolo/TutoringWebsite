@@ -6,7 +6,6 @@ import {
   Clock,
   Calendar,
   X,
-  RefreshCw,
   Trash2,
   CheckCircle,
   ArrowLeft,
@@ -267,12 +266,6 @@ export default function StudentLessonsPage() {
                             ? 'Completed'
                             : 'Scheduled'}
                         </Badge>
-                        {lesson.is_recurring && (
-                          <Badge variant="accent">
-                            <RefreshCw className="w-3 h-3 mr-1" />
-                            Weekly
-                          </Badge>
-                        )}
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {lesson.duration_minutes} min • {formatCurrency(lesson.cost)}
                         </span>
