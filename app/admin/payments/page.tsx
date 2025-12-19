@@ -233,12 +233,27 @@ export default function AdminPaymentsPage() {
     }
 
     try {
-      const { error } = await supabase
+      // First verify this is a deletable transaction
+      if (transaction.stripe_payment_id) {
+        toast.error('Cannot delete Stripe payments. Please refund through Stripe dashboard.')
+        return
+      }
+      
+      if (transaction.type !== 'deposit') {
+        toast.error('Can only delete external deposit payments')
+        return
+      }
+
+      const { error, count } = await supabase
         .from('transactions')
         .delete()
         .eq('id', transaction.id)
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Delete error:', error)
+        throw error
+      }
 
       toast.success('Payment deleted successfully')
       
@@ -246,7 +261,8 @@ export default function AdminPaymentsPage() {
       setLoading(true)
       await fetchData()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete payment')
+      console.error('Delete payment failed:', error)
+      toast.error(error.message || 'Failed to delete payment. Check console for details.')
     }
   }
 

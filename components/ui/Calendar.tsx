@@ -115,7 +115,7 @@ export function Calendar({
               transition={{ duration: 0.1 }}
               onClick={() => onDateSelect?.(day)}
               className={cn(
-                'min-h-[64px] sm:min-h-[80px] p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200',
+                'min-h-[64px] sm:min-h-[140px] p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200',
                 isCurrentMonth ? 'bg-gray-50/50 dark:bg-gray-950/40' : 'bg-transparent',
                 isSelected && 'ring-2 ring-primary-500 bg-white dark:bg-gray-900',
                 isDayToday && !isSelected && 'ring-1 ring-gray-300 dark:ring-gray-700 bg-white dark:bg-gray-900',
@@ -157,7 +157,7 @@ export function Calendar({
                   
                   {/* Desktop: show labels */}
                   <div className="hidden sm:block space-y-1">
-                    {dayLessons.slice(0, 2).map((lesson) => (
+                    {dayLessons.slice(0, 6).map((lesson) => (
                       <div
                         key={lesson.id}
                         onClick={(e) => {
@@ -176,9 +176,9 @@ export function Calendar({
                         {lesson.student?.student_name || format(parseISO(lesson.start_time), 'HH:mm')}
                       </div>
                     ))}
-                    {dayLessons.length > 2 && (
+                    {dayLessons.length > 6 && (
                       <div className="text-xs text-gray-400 dark:text-gray-500 px-1">
-                        +{dayLessons.length - 2} more
+                        +{dayLessons.length - 6} more
                       </div>
                     )}
                   </div>

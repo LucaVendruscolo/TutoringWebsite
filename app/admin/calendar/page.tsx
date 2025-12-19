@@ -31,8 +31,11 @@ import {
   formatCurrency,
   formatDate,
   formatTimeInTimezone,
+  formatDateInTimezone,
   calculateLessonCost,
   generateRecurringId,
+  createDateInTimezone,
+  getDateTimeInTimezone,
   TIMEZONES,
   LESSON_DURATIONS,
   TIME_SLOTS,
@@ -146,7 +149,8 @@ export default function AdminCalendarPage() {
       const student = students.find((s) => s.id === formData.studentId)
       if (!student) throw new Error('Student not found')
 
-      const startTime = new Date(`${formData.date}T${formData.time}:00`)
+      // Convert the selected time from viewTimezone to UTC for storage
+      const startTime = createDateInTimezone(formData.date, formData.time, viewTimezone)
       const endTime = addMinutes(startTime, formData.duration)
       const parsedCost = parseFloat(formData.cost)
       const cost = Number.isFinite(parsedCost)
@@ -157,7 +161,7 @@ export default function AdminCalendarPage() {
       const conflictingLesson = checkDoubleBooking(startTime, endTime)
       if (conflictingLesson) {
         setDoubleBookingWarning(
-          `Warning: This overlaps with ${conflictingLesson.student?.student_name}'s lesson at ${formatTimeInTimezone(conflictingLesson.start_time, 'Europe/London')}`
+          `Warning: This overlaps with ${conflictingLesson.student?.student_name}'s lesson at ${formatTimeInTimezone(conflictingLesson.start_time, viewTimezone)}`
         )
         setIsSubmitting(false)
         return
@@ -227,23 +231,39 @@ export default function AdminCalendarPage() {
   }
 
   const handleDeleteLesson = async (lesson: Lesson, deleteAll: boolean = false) => {
-    const confirmMsg = deleteAll
-      ? 'Delete ALL recurring lessons in this series? This cannot be undone.'
-      : 'Delete this lesson? This cannot be undone.'
+    const now = new Date()
+    
+    if (deleteAll && lesson.recurring_group_id) {
+      // Count how many future lessons will be deleted
+      const futureLessons = lessons.filter(
+        l => l.recurring_group_id === lesson.recurring_group_id && 
+             new Date(l.start_time) > now &&
+             l.status !== 'cancelled'
+      )
+      
+      const confirmMsg = `Delete ${futureLessons.length} FUTURE lessons in this recurring series? Past lessons will be kept. This cannot be undone.`
+      if (!confirm(confirmMsg)) return
 
-    if (!confirm(confirmMsg)) return
-
-    try {
-      if (deleteAll && lesson.recurring_group_id) {
+      try {
+        // Only delete future lessons in this recurring group
         const { error } = await supabase
           .from('lessons')
           .delete()
           .eq('recurring_group_id', lesson.recurring_group_id)
+          .gt('start_time', now.toISOString())
 
         if (error) throw error
-        toast.success('All recurring lessons deleted!')
+        toast.success(`${futureLessons.length} future lessons deleted! Past lessons preserved.`)
         await syncBalance(lesson.student_id)
-      } else {
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to delete lessons')
+        return
+      }
+    } else {
+      const confirmMsg = 'Delete this lesson? This cannot be undone.'
+      if (!confirm(confirmMsg)) return
+
+      try {
         const { error } = await supabase
           .from('lessons')
           .delete()
@@ -252,13 +272,92 @@ export default function AdminCalendarPage() {
         if (error) throw error
         toast.success('Lesson deleted!')
         await syncBalance(lesson.student_id)
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to delete lesson')
+        return
       }
+    }
 
+    setIsViewModalOpen(false)
+    setSelectedLesson(null)
+    fetchData()
+  }
+
+  const handleMarkComplete = async (lesson: Lesson) => {
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .update({ status: 'completed' })
+        .eq('id', lesson.id)
+
+      if (error) throw error
+      toast.success('Lesson marked as complete!')
+      await syncBalance(lesson.student_id)
       setIsViewModalOpen(false)
       setSelectedLesson(null)
       fetchData()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete lesson')
+      toast.error(error.message || 'Failed to mark lesson complete')
+    }
+  }
+
+  const handleUpdateAllFuture = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedLesson || !selectedLesson.recurring_group_id) return
+    setIsSubmitting(true)
+
+    try {
+      const student = students.find((s) => s.id === formData.studentId)
+      if (!student) throw new Error('Student not found')
+
+      const now = new Date()
+      const newStartTime = createDateInTimezone(formData.date, formData.time, viewTimezone)
+      const newEndTime = addMinutes(newStartTime, formData.duration)
+      const parsedCost = parseFloat(formData.cost)
+      const cost = Number.isFinite(parsedCost)
+        ? parsedCost
+        : calculateLessonCost(formData.duration, student.cost_per_hour)
+
+      // Calculate the time difference from the original lesson
+      const originalStart = parseISO(selectedLesson.start_time)
+      const timeDiffMs = newStartTime.getTime() - originalStart.getTime()
+
+      // Get all future lessons in this recurring group
+      const futureLessons = lessons.filter(
+        l => l.recurring_group_id === selectedLesson.recurring_group_id && 
+             new Date(l.start_time) > now
+      )
+
+      // Update each future lesson
+      for (const lesson of futureLessons) {
+        const lessonStart = new Date(parseISO(lesson.start_time).getTime() + timeDiffMs)
+        const lessonEnd = addMinutes(lessonStart, formData.duration)
+
+        await supabase
+          .from('lessons')
+          .update({
+            student_id: formData.studentId,
+            start_time: lessonStart.toISOString(),
+            end_time: lessonEnd.toISOString(),
+            duration_minutes: formData.duration,
+            cost,
+            notes: formData.notes || null,
+          })
+          .eq('id', lesson.id)
+      }
+
+      toast.success(`Updated ${futureLessons.length} future lessons!`)
+      setIsEditModalOpen(false)
+      await syncBalance(selectedLesson.student_id)
+      if (formData.studentId !== selectedLesson.student_id) {
+        await syncBalance(formData.studentId)
+      }
+      setSelectedLesson(null)
+      fetchData()
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update lessons')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -272,7 +371,8 @@ export default function AdminCalendarPage() {
       const student = students.find((s) => s.id === formData.studentId)
       if (!student) throw new Error('Student not found')
 
-      const startTime = new Date(`${formData.date}T${formData.time}:00`)
+      // Convert the selected time from viewTimezone to UTC for storage
+      const startTime = createDateInTimezone(formData.date, formData.time, viewTimezone)
       const endTime = addMinutes(startTime, formData.duration)
       const parsedCost = parseFloat(formData.cost)
       const cost = Number.isFinite(parsedCost)
@@ -283,7 +383,7 @@ export default function AdminCalendarPage() {
       const conflictingLesson = checkDoubleBooking(startTime, endTime, selectedLesson.id)
       if (conflictingLesson) {
         setDoubleBookingWarning(
-          `Warning: This overlaps with ${conflictingLesson.student?.student_name}'s lesson at ${formatTimeInTimezone(conflictingLesson.start_time, 'Europe/London')}`
+          `Warning: This overlaps with ${conflictingLesson.student?.student_name}'s lesson at ${formatTimeInTimezone(conflictingLesson.start_time, viewTimezone)}`
         )
         setIsSubmitting(false)
         return
@@ -325,10 +425,12 @@ export default function AdminCalendarPage() {
 
   const openEditModal = (lesson: Lesson) => {
     setSelectedLesson(lesson)
+    // Get the date and time in the current viewTimezone
+    const { date, time } = getDateTimeInTimezone(lesson.start_time, viewTimezone)
     setFormData({
       studentId: lesson.student_id,
-      date: format(parseISO(lesson.start_time), 'yyyy-MM-dd'),
-      time: format(parseISO(lesson.start_time), 'HH:mm'),
+      date,
+      time,
       duration: lesson.duration_minutes,
       cost: Number(lesson.cost).toFixed(2),
       isRecurring: false,
@@ -560,7 +662,7 @@ export default function AdminCalendarPage() {
               required
             />
             <Select
-              label="Time (UK Time)"
+              label={`Start Time (${TIMEZONES.find(tz => tz.value === viewTimezone)?.label || viewTimezone})`}
               value={formData.time}
               onChange={(e) => setFormData({ ...formData, time: e.target.value })}
               options={TIME_SLOTS}
@@ -669,14 +771,14 @@ export default function AdminCalendarPage() {
                 <div>
                   <p className="text-xs sm:text-sm text-gray-500">Date</p>
                   <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
-                    {formatDate(selectedLesson.start_time, 'EEE, MMM d, yyyy')}
+                    {formatDateInTimezone(selectedLesson.start_time, viewTimezone, 'EEE, MMM d, yyyy')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Time</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Time ({TIMEZONES.find(tz => tz.value === viewTimezone)?.label || viewTimezone})</p>
                   <p className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
-                    {formatTimeInTimezone(selectedLesson.start_time, 'Europe/London')} -{' '}
-                    {formatTimeInTimezone(selectedLesson.end_time, 'Europe/London')}
+                    {formatTimeInTimezone(selectedLesson.start_time, viewTimezone)} -{' '}
+                    {formatTimeInTimezone(selectedLesson.end_time, viewTimezone)}
                   </p>
                 </div>
                 <div>
@@ -722,9 +824,21 @@ export default function AdminCalendarPage() {
             </div>
 
             <div className="flex flex-col gap-3">
+              {/* Mark as complete button for past scheduled lessons */}
+              {selectedLesson.status === 'scheduled' && new Date(selectedLesson.end_time) < new Date() && (
+                <Button 
+                  onClick={() => handleMarkComplete(selectedLesson)} 
+                  variant="outline"
+                  className="text-mint-600 border-mint-200 hover:bg-mint-50 dark:border-mint-500/30 dark:hover:bg-mint-500/10"
+                >
+                  Mark as Complete
+                </Button>
+              )}
+              
               <Button onClick={() => openEditModal(selectedLesson)} leftIcon={<Edit2 className="w-4 h-4" />}>
                 Edit Lesson
               </Button>
+              
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="danger"
@@ -739,7 +853,7 @@ export default function AdminCalendarPage() {
                     onClick={() => handleDeleteLesson(selectedLesson, true)}
                     leftIcon={<Trash2 className="w-4 h-4" />}
                   >
-                    Delete All
+                    Delete Future
                   </Button>
                 )}
               </div>
@@ -795,7 +909,7 @@ export default function AdminCalendarPage() {
               required
             />
             <Select
-              label="Time (UK Time)"
+              label={`Start Time (${TIMEZONES.find(tz => tz.value === viewTimezone)?.label || viewTimezone})`}
               value={formData.time}
               onChange={(e) => setFormData({ ...formData, time: e.target.value })}
               options={TIME_SLOTS}
@@ -830,21 +944,65 @@ export default function AdminCalendarPage() {
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           />
 
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setIsEditModalOpen(false)
-                setDoubleBookingWarning(null)
-              }}
-              className="w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto">
-              Update Lesson
-            </Button>
+          <div className="flex flex-col gap-3">
+            {selectedLesson?.is_recurring && (
+              <div className="p-3 rounded-xl bg-accent-50 dark:bg-accent-500/10 border border-accent-200 dark:border-accent-500/30">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                  This is a recurring lesson. Choose how to apply changes:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Button 
+                    type="submit" 
+                    isLoading={isSubmitting} 
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Update This Only
+                  </Button>
+                  <Button 
+                    type="button"
+                    onClick={handleUpdateAllFuture}
+                    isLoading={isSubmitting} 
+                    className="w-full"
+                  >
+                    Update All Future
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {!selectedLesson?.is_recurring && (
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setIsEditModalOpen(false)
+                    setDoubleBookingWarning(null)
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto">
+                  Update Lesson
+                </Button>
+              </div>
+            )}
+            
+            {selectedLesson?.is_recurring && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsEditModalOpen(false)
+                  setDoubleBookingWarning(null)
+                }}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            )}
           </div>
         </form>
       </Modal>
