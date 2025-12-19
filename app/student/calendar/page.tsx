@@ -19,7 +19,7 @@ import {
 } from '@/lib/utils'
 import type { Lesson, Profile } from '@/lib/types'
 import { parseISO, format } from 'date-fns'
-import { Clock, RefreshCw, X, Edit2, ArrowLeft } from 'lucide-react'
+import { Clock, X, Edit2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default function StudentCalendarPage() {
@@ -187,12 +187,6 @@ export default function StudentCalendarPage() {
                             </div>
                           </div>
                           <div className="flex flex-wrap items-center gap-2 mt-2">
-                            {lesson.is_recurring && (
-                              <Badge variant="accent" size="sm">
-                                <RefreshCw className="w-3 h-3 mr-1" />
-                                Weekly
-                              </Badge>
-                            )}
                             <Badge
                               size="sm"
                               variant={
@@ -282,12 +276,6 @@ export default function StudentCalendarPage() {
                     ? 'Completed'
                     : 'Scheduled'}
                 </Badge>
-                {selectedLesson.is_recurring && (
-                  <Badge variant="accent">
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    Weekly
-                  </Badge>
-                )}
               </div>
             </div>
 

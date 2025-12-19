@@ -124,11 +124,6 @@ export default function LoginPage() {
       // Apply user's saved theme preference
       const userTheme = profile?.dark_mode ? 'dark' : 'light'
       setTheme(userTheme)
-
-      const parentName = profile?.parent_name?.trim?.() || ''
-      if (parentName) {
-        toast.success(`Welcome back, ${parentName}!`)
-      }
       
       if (profile?.role === 'admin') {
         router.push('/admin/dashboard')
