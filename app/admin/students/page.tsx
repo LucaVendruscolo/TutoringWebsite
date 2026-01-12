@@ -193,6 +193,24 @@ export default function StudentsPage() {
     setIsSubmitting(true)
 
     try {
+      // Check if email changed
+      if (formData.email !== selectedStudent.email) {
+        const emailResponse = await fetch('/api/admin/update-student-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: selectedStudent.id,
+            newEmail: formData.email,
+          }),
+        })
+
+        const emailResult = await emailResponse.json()
+
+        if (!emailResponse.ok) {
+          throw new Error(emailResult.error || 'Failed to update email')
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -595,8 +613,9 @@ export default function StudentsPage() {
             label="Email Address"
             type="email"
             value={formData.email}
-            disabled
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             leftIcon={<Mail className="w-5 h-5" />}
+            required
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
